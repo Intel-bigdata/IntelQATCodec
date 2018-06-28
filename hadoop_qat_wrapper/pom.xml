@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.apache.hadoop</groupId>
+  <artifactId>hadoop_qat_wrapper</artifactId>
+  <description>Apache Hadoop QAT Codec</description>
+  <name>Apache Hadoop QAT Codec</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <hadoop.component>common</hadoop.component>
+    <is.hadoop.component>true</is.hadoop.component>
+    <is.hadoop.common.component>true</is.hadoop.common.component>
+    <!-- platform encoding override -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <scope>compile</scope>
+      <version>2.6.0-cdh5.14.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <scope>test</scope>
+      <type>test-jar</type>
+      <version>2.6.0-cdh5.14.2</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+ </dependencies>
+
+ <build>
+   <plugins>
+     <plugin>
+      <artifactId>maven-surefire-plugin</artifactId>
+      <version>2.19.1</version>
+      <configuration>
+        <systemPropertyVariables>
+        <propertyName>java.library.path</propertyName>
+        <buildDirectory>target</buildDirectory>
+        </systemPropertyVariables>
+        <environmentVariables>
+           <LD_LIBRARY_PATH>${qatzip.libs}</LD_LIBRARY_PATH>
+        </environmentVariables>
+      </configuration>
+     </plugin>
+     <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+   </plugins>
+ </build>
+
+ <profiles>
+  <profile>
+      <id>native</id>
+      <activation>
+         <property>
+            <name>!skipNative</name>
+        </property>
+         <os>
+          <family>Linux</family>
+        </os>
+      </activation>
+     <build>
+      <plugins>
+        <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>build-native</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <echo>Java Home: ${java.home}</echo>
+                <exec dir="build/native" executable="make" failonerror="true">
+                 <env key="HADOOPSRC" value="${hadoop.src}" />
+                 <env key="QATZIPSRC" value="${qatzip.src}" />
+                 <env key="JAVA_HOME" value="${java.home}/.." />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>clean-native</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <exec dir="build/native" executable="make" failonerror="true">
+                 <arg value="clean" />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+   </plugins>
+  </build>
+ </profile>
+ </profiles>
+</project>
+

@@ -1,0 +1,6 @@
+../src/main/java/org/apache/hadoop/io/compress/conf/QatConfigurationKeys.java
+../src/main/java/org/apache/hadoop/io/compress/QatCodec.java
+../src/main/java/org/apache/hadoop/io/compress/qat/QatCompressor.java
+../src/main/java/org/apache/hadoop/io/compress/qat/QatDecompressor.java
+../src/main/java/org/apache/hadoop/util/QatNativeCodeLoader.java
+../src/main/java/org/apache/hadoop/util/QatNativeLibraryChecker.java

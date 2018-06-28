@@ -1,0 +1,41 @@
+# .gitignore file
+
+# Source
+########
+*.o
+*.so
+*.dll
+*.a
+*.exe
+*.ko
+*.class
+
+# Package
+#########
+*.jar
+*.zip
+*.tar
+*.gz
+
+# Log files
+###########
+*.log
+
+# Editor copies
+###############
+README~
+.gitignore~
+*.c~
+*.h~
+*.java~
+*.sh~
+
+# idea
+######
+*.iml
+.idea/
+
+columnar_format_qat_wrapper/target/
+javah/
+jni-header/
+target/
