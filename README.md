@@ -79,3 +79,6 @@ After exporting above parameters execute the following commands
   cd QATCodec/build/native/
 
   make
+
+
+#### For any security concerns, please visit https://01.org/security.
