@@ -42,23 +42,23 @@ static jfieldID QatCompressor_uncompressedDirectBufLen;
 static jfieldID QatCompressor_compressedDirectBuf;
 static jfieldID QatCompressor_directBufferSize;
 
-__thread QzSession  g_qzCompressSession = {
+__thread QzSession_T  g_qzCompressSession = {
     .internal = NULL,
 };
 
 #ifdef UNIX
-unsigned char* (*dlsym_qzMalloc)(int, int, int); 
-static int (*dlsym_qzCompress)(QzSession *sess, const unsigned char* src,
+unsigned char* (*dlsym_qzMalloc)(int, int, int);
+static int (*dlsym_qzCompress)(QzSession_T *sess, const unsigned char* src,
     unsigned int* src_len, unsigned char* dest, unsigned int* dest_len,
     unsigned int last);
+int (*dlsym_qzGetDefaults)(QzSessionParams_T *defaults);
+int (*dlsym_qzSetDefaults)(QzSessionParams_T *defaults);
 #endif
 
-//QzSession sess;
-QzSessionParams params;
 JNIEXPORT void JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_initIDs
 (JNIEnv *env, jclass clazz, jint level){
+  QzSessionParams_T params;
 #ifdef UNIX
-
   // Load libqatzip.so
   void *libqatzip = dlopen("libqatzip.so", RTLD_LAZY | RTLD_GLOBAL);
   if (!libqatzip) {
@@ -74,6 +74,8 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_init
   dlerror();                                 // Clear any existing error
   LOAD_DYNAMIC_SYMBOL(dlsym_qzCompress, env, libqatzip, "qzCompress");
   LOAD_DYNAMIC_SYMBOL(dlsym_qzMalloc, env, libqatzip, "qzMalloc");
+  LOAD_DYNAMIC_SYMBOL(dlsym_qzGetDefaults, env, libqatzip, "qzGetDefaults");
+  LOAD_DYNAMIC_SYMBOL(dlsym_qzSetDefaults, env, libqatzip, "qzSetDefaults");
 #endif
 
   QatCompressor_clazz = (*env)->GetStaticFieldID(env, clazz, "clazz",
@@ -88,10 +90,10 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_init
                                                          "Ljava/nio/Buffer;");
   QatCompressor_directBufferSize = (*env)->GetFieldID(env, clazz,
                                                        "directBufferSize", "I");
-  qzGetDefaults(&params);
-  params.compLvl = level;
+  dlsym_qzGetDefaults(&params);
+  params.comp_lvl = level;
   fprintf(stderr, "compression level is %d, tid is %d\n", level, syscall(__NR_gettid));
-  qzSetDefaults(&params);
+  dlsym_qzSetDefaults(&params);
 }
 
 JNIEXPORT jint JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_compressBytesDirect
@@ -132,7 +134,7 @@ JNIEXPORT jint JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_comp
   ret = dlsym_qzCompress(&g_qzCompressSession, uncompressed_bytes, &src_len,
         compressed_bytes, &buf_len, 1);
   if (ret != QZ_OK){
-    THROW(env, "java/lang/InternalError", "Could not compress data. Buffer length is too small.");
+    THROW(env, "java/lang/InternalError", "Could not compress data, return " + ret);
     return 0;
   }
   if (buf_len > JINT_MAX) {
@@ -170,10 +172,10 @@ Java_org_apache_hadoop_io_compress_qat_QatCompressor_getLibraryName(JNIEnv *env,
 #endif
 }
 
-JNIEXPORT jobject JNICALL 
+JNIEXPORT jobject JNICALL
 Java_org_apache_hadoop_io_compress_qat_QatCompressor_nativeAllocateBB(JNIEnv *env,
  jobject obj, jlong capacity, jboolean numa, jboolean force_pinned){
-//void *buf = dlsym_qat_malloc(capacity);  
+//void *buf = dlsym_qat_malloc(capacity);
 //printf("compressor: DBB address is 0x%lx\n",(unsigned long)buf);
 //fflush(stdout);
 //  return (*env)->NewDirectByteBuffer(env, buf, capacity);
