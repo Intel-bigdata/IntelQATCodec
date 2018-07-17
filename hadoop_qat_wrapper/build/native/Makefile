@@ -37,7 +37,7 @@ INC = -I $(JAVA_HOME)/include \
       -I .
 
 libqatcodec.so: QatCompressor.o QatDecompressor.o util.o
-	gcc -fpic -shared -o ../../target/libqatcodec.so QatCompressor.o \
+	gcc -fpic -shared -o ../../target/libqatcodec.so -ldl QatCompressor.o \
 	  QatDecompressor.o util.o
 
 QatCompressor.o: ../../src/main/native/QatCompressor.c javah

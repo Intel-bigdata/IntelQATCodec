@@ -42,4 +42,4 @@
 
 #define HADOOP_QAT_LIBRARY "libqatzip.so"
 
-extern __thread QzSession  g_qzCompressSession; 
+extern __thread QzSession_T  g_qzCompressSession;

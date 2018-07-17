@@ -38,14 +38,14 @@ static jfieldID QatDecompressor_directBufferSize;
 #define qaePinnedMemFree(x)      qaeMemFreeNUMA((void **)&(x))
 
 #ifdef UNIX
-static int (*dlsym_qzDecompress)(QzSession *sess, const unsigned char* src,
+static int (*dlsym_qzDecompress)(QzSession_T *sess, const unsigned char* src,
     unsigned int* compressed_buf_len, unsigned char* dest,
     unsigned int* uncompressed_buffer_len);
-unsigned char* (*dlsym_qzMalloc)(int sz, int numa, int force_pinned); 
+unsigned char* (*dlsym_qzMalloc)(int sz, int numa, int force_pinned);
 #endif
 
 #ifdef WINDOWS
-typedef int (__cdecl *__dlsym_qzDecompress)(QzSession *sess, const unsigned char* src,
+typedef int (__cdecl *__dlsym_qzDecompress)(QzSession_T *sess, const unsigned char* src,
     unsigned int* compressed_buf_len, unsigned char* dest,
     unsigned int* uncompressed_buffer_len);
 static __dlsym_qzDecompress dlsym_qzDecompress;
@@ -133,12 +133,8 @@ JNIEXPORT jint JNICALL Java_org_apache_hadoop_io_compress_qat_QatDecompressor_de
   compressed_buf_len = compressed_direct_buf_len;
   ret = dlsym_qzDecompress(&g_qzCompressSession, compressed_bytes, &compressed_buf_len,
         uncompressed_bytes, &uncompressed_direct_buf_len);
-  if (ret == QZ_PARAMS){
-    THROW(env, "java/lang/InternalError", "Could not decompress data. Buffer length is too small.");
-  } else if (ret == QZ_FAIL){
-    THROW(env, "java/lang/InternalError", "Could not decompress data. Functionality is not supported.");
-  } else if (ret != QZ_OK){
-    THROW(env, "java/lang/InternalError", "Could not decompress data.");
+  if (ret != QZ_OK) {
+    THROW(env, "java/lang/InternalError", "Could not decompress data, return " + ret);
   }
 
   (*env)->SetIntField(env, thisj, QatDecompressor_compressedDirectBufLen, 0);
@@ -146,10 +142,10 @@ JNIEXPORT jint JNICALL Java_org_apache_hadoop_io_compress_qat_QatDecompressor_de
   return (jint)uncompressed_direct_buf_len;
 }
 
-JNIEXPORT jobject JNICALL 
+JNIEXPORT jobject JNICALL
 Java_org_apache_hadoop_io_compress_qat_QatDecompressor_nativeAllocateBB(JNIEnv *env,
  jobject obj, jlong capacity, jboolean numa, jboolean force_pinned){
-/*void *buf = dlsym_qzMalloc(capacity,0,1);  
+/*void *buf = dlsym_qzMalloc(capacity,0,1);
 if (NULL == buf){
 fprintf(stderr,"decompressor: DBB address is 0x%lx\n",(unsigned long)buf);
 fflush(stderr);

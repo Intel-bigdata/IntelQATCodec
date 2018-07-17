@@ -40,14 +40,14 @@
 
 #define QAT_ZIP_LIBRARY_NAME "libqatzip.so"
 
-typedef int (*dlsym_qzCompress)(QzSession *sess, const unsigned char* src,
+typedef int (*dlsym_qzCompress)(QzSession_T *sess, const unsigned char* src,
     unsigned int* src_len, unsigned char* dest, unsigned int* dest_len,
     unsigned int last);
-typedef int (*dlsym_qzDecompress)(QzSession *sess, const unsigned char* src,
+typedef int (*dlsym_qzDecompress)(QzSession_T *sess, const unsigned char* src,
     unsigned int* compressed_buf_len, unsigned char* dest,
     unsigned int* uncompressed_buffer_len);
-typedef int (*dlsym_qzGetDefaults)(QzSessionParams *defaults);
-typedef int (*dlsym_qzSetDefaults)(QzSessionParams *defaults);
+typedef int (*dlsym_qzGetDefaults)(QzSessionParams_T *defaults);
+typedef int (*dlsym_qzSetDefaults)(QzSessionParams_T *defaults);
 
 
 typedef struct qat_wrapper_context {                                                                                                     int magic;
@@ -59,7 +59,7 @@ typedef struct qat_wrapper_context {                                            
 
 qat_wrapper_context_t g_qat_wrapper_context;
 
-__thread QzSession  g_qzSession = {
+__thread QzSession_T  g_qzSession = {
     .internal = NULL,
 };
 
@@ -140,9 +140,9 @@ Java_com_intel_qat_jni_QatCodecJNI_createCompressContext(
         JNIEnv *env, jclass cls, jint level)
 {
     qat_wrapper_context_t *qat_wrapper_context = &g_qat_wrapper_context;
-    QzSessionParams params;
+    QzSessionParams_T params;
     qat_wrapper_context->getDefaults(&params);
-    params.compLvl = level;
+    params.comp_lvl = level;
     //fprintf(stderr, "compression level is %d, tid is %ld\n", level, syscall(__NR_gettid));
     qat_wrapper_context->setDefaults(&params);
     return (jlong)1;
