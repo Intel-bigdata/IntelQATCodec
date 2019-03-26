@@ -1,0 +1,93 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.intel.qat</groupId>
+  <artifactId>carbondata_qat_wrapper</artifactId>
+  <name>Apache Carbondata QAT Codec</name>
+  <packaging>jar</packaging>
+
+  <properties>
+    <basedir>./</basedir>
+    <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+    <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>RELEASE</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <propertyName>java.library.path</propertyName>
+            <buildDirectory>target</buildDirectory>
+          </systemPropertyVariables>
+          <environmentVariables>
+            <LD_LIBRARY_PATH>${basedir}/src/main/native</LD_LIBRARY_PATH>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven-antrun-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>build-native</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <echo>Java Home: ${java.home}</echo>
+                <property name="native.src.dir" value="${basedir}/src/main/native"/>
+                <exec dir="${native.src.dir}" executable="make" failonerror="true">
+                  <env key="JAVA_HOME" value="${java.home}/.." />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>clean-native</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <exec dir="src/main/native" executable="make" failonerror="true">
+                  <arg value="clean" />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
