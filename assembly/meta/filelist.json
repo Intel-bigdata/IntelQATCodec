@@ -1,0 +1,21 @@
+{
+   "hadoop-qat-codec" : {
+    "name": "hadoop-qat-codec",
+    "version": "${parcel.version}",
+    "files" : {
+      "lib/hadoop/lib" : {},
+      "lib/hadoop/lib/hadoop_qat_codec-${parcel.version}.jar" : {},
+      "lib/hadoop/lib/native" : {},
+      "lib/hadoop/lib/native/libqatcodec.so" : {}
+    }
+  }
+  , "spark-qat-codec" : {
+    "name": "spark-qat-codec",
+    "version": "${parcel.version}",
+    "files" : {
+      "lib/spark" : {},
+      "lib/spark/lib" : {},
+      "lib/spark/lib/spark_qat_codec-${parcel.version}.jar" : {}
+    }
+  }
+}
