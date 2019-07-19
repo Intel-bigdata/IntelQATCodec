@@ -64,7 +64,7 @@ JNIEXPORT void JNICALL Java_org_apache_hadoop_io_compress_qat_QatCompressor_init
   if (!libqatzip) {
     char msg[1000];
     snprintf(msg, 1000, "%s (%s)!", "Cannot load " HADOOP_QAT_LIBRARY, dlerror());
-    THROW(env, "java/lang/UnsatisfiedLinkError1", msg);
+    THROW(env, "java/lang/UnsatisfiedLinkError", msg);
     return;
   }
 #endif
