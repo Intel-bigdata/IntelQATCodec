@@ -33,7 +33,7 @@ public class TestQat {
     byte[] input = "This is test message".getBytes();
     byte[] compressed = new byte[input.length * 10];
     int compressedLength = Qat.compress(input, 0, input.length, compressed, 0);
-    assertTrue("Compressed length should be more than 0", compressedLength > 0);
+    assertTrue("Compressed length should be more than 0.", compressedLength > 0);
   }
 
   @Test
@@ -45,7 +45,7 @@ public class TestQat {
     byte[] uncompressedData = new byte[input.length];
     int uncompress = Qat.uncompress(compressed, 0, compressedLength,
         uncompressedData, 0);
-    assertEquals("Original data length shoud be same as uncompressed data size",
+    assertEquals("Original data length should be same as uncompressed data size.",
         uncompress, input.length);
     assertEquals("Original and uncompressed data is not equal.",
         new String(input), new String(uncompressedData));
@@ -61,17 +61,16 @@ public class TestQat {
     int uncompress = Qat.uncompress(compressed, 0, compressedLength,
         uncompressedData, 0);
     assertEquals(
-        "Original data length should be same as uncompressed data size",
+        "Original data length should be same as uncompressed data size.",
         uncompress, input.length);
     assertArrayEquals("Original and uncompressed data is not equal.", input,
         uncompressedData);
-    System.out.println("End of the test");
   }
 
   @Test
   public void testMaxCompressedLength() {
     int maxCompressedLength = Qat.maxCompressedLength(3 * 1024);
-    assertEquals("maxCompressedLength is different, ", 3536,
+    assertEquals("maxCompressedLength is different. ", 3536,
         maxCompressedLength);
   }
 }

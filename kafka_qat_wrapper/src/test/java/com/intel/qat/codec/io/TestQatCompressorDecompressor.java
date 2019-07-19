@@ -18,6 +18,9 @@
 
 package com.intel.qat.codec.io;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -30,7 +33,6 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.intel.qat.codec.io.streams.QatInputStream;
@@ -47,7 +49,7 @@ public class TestQatCompressorDecompressor {
   @Test
   public void testCompression() throws IOException {
     byte[] data = compressData();
-    Assert.assertTrue("Compressed data should not be empty", data.length > 0);
+    assertTrue("Compressed data should not be empty.", data.length > 0);
   }
 
   @Test
@@ -59,7 +61,7 @@ public class TestQatCompressorDecompressor {
         bytes = inStream.read(b);
       }
     }
-    Assert.assertEquals("Decompressed data is not matching original data",
+    assertEquals("Decompressed data is not matching original data.",
         new String(b, 0, bytes), new String(text));
   }
 
@@ -69,7 +71,7 @@ public class TestQatCompressorDecompressor {
     compressedFile = compressFile(inputFile);
     decompressedFile = decompressFile(compressedFile);
     boolean result = FileUtils.contentEquals(inputFile, decompressedFile);
-    Assert.assertTrue("Decompressed file is not matching with original file",
+    assertTrue("Decompressed file is not matching with original file.",
         result);
   }
 
