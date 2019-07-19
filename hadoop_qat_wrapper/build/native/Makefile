@@ -32,6 +32,7 @@ FLAGS = -g -Wall -O2 -D_REENTRANT -D_GNU_SOURCE -D_LARGEFILE_SOURCE \
 INC = -I $(JAVA_HOME)/include \
       -I $(JAVA_HOME)/include/linux \
       -I $(QATZIPSRC)/include \
+      -I /opt/intel/QATzip/include/ \
       -I javah \
       -I ../../src/main/native \
       -I .

@@ -35,7 +35,8 @@ SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) QatCodecJNI.c
 INCLUDES  := $(addprefix -I,$(MODULES)) \
 	-I$(JAVA_HOME)/include \
 	-I$(JAVA_HOME)/include/linux \
-	-I $(QATZIPSRC)/include \
+	-I$(QATZIPSRC)/include \
+	-I/opt/intel/QATzip/include/ \
 	-I.
 
 LIB_DIRS :=
