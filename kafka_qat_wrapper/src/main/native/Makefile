@@ -7,19 +7,19 @@ endif
 # A function to check whether every environment variable in a list is defined.
 check = $(foreach var,$(1),$(if $($(var)),,$(error Please set $(var))))
 
-TARGET := libCarbondataQatJNI.so
+TARGET := libkafkaqatjni.so
 
 MODULES :=
 
 # Source files.
-SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) CarbondataQatJNI.c
+SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) KafkaQatJNI.c
 
 # Include files.
 INCLUDES  := $(addprefix -I,$(MODULES)) \
 	-I$(JAVA_HOME)/include \
 	-I$(JAVA_HOME)/include/linux \
 	-I$(QATZIP_SRC)/include \
-	-I/opt/intel/QATzip/include/ \
+    -I/opt/intel/QATzip/include/ \
 	-I.
 
 LIB_DIRS :=
@@ -55,7 +55,7 @@ jni:
 	@echo Generating jni header
 	$(call check,JAVA_HOME)
 	$(ECHO)$(JAVA_HOME)/bin/javah -cp ../../../target/classes \
-	com.intel.qat.jni.CarbondataQatJNI
+	com.intel.qat.codec.io.nativ.QatNative
 
 clean:
 	$(ECHO)rm -rf *.so *.o

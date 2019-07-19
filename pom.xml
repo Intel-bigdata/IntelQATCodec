@@ -50,6 +50,7 @@
     <module>hadoop_qat_wrapper</module>
     <module>spark_qat_wrapper</module>
     <module>carbondata_qat_wrapper</module>
+    <module>kafka_qat_wrapper</module>
   </modules>
 
 </project>
