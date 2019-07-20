@@ -54,29 +54,7 @@
 
   <properties>
     <parcel.version>${project.version}</parcel.version>
-    <parcel.platform>el7</parcel.platform>
   </properties>
-
-  <profiles>
-    <profile>
-      <id>el7</id>
-      <properties>
-        <parcel.platform>el7</parcel.platform>
-      </properties>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-    </profile>
-    <profile>
-      <id>el6</id>
-      <properties>
-        <parcel.platform>el6</parcel.platform>
-      </properties>
-      <activation>
-        <activeByDefault>false</activeByDefault>
-      </activation>
-    </profile>
-  </profiles>
 
   <build>
     <plugins>
