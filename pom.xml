@@ -132,11 +132,19 @@
             <id>rename-parcel</id>
             <phase>package</phase>
             <goals>
-              <goal>rename</goal>
+              <goal>copy</goal>
             </goals>
             <configuration>
-              <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
-              <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-${parcel.platform}.parcel</destinationFile>
+              <fileSets>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el6.parcel</destinationFile>
+                </fileSet>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el7.parcel</destinationFile>
+                </fileSet>
+              </fileSets>
             </configuration>
           </execution>
         </executions>
