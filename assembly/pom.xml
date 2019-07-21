@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>assembly</artifactId>
+  <description>QAT Codec Parcel Builder</description>
+  <name>QAT Codec Parcel Builder</name>
+  <packaging>pom</packaging>
+
+  <properties>
+    <parcel.version>${project.version}</parcel.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <encoding>UTF-8</encoding>
+          <outputDirectory>${project.build.directory}/meta</outputDirectory>
+          <resources>
+            <resource>
+              <directory>${project.parent.basedir}/assembly/src/main/assembly/meta</directory>
+              <filtering>true</filtering>
+              <includes>
+                <include>filelist.json</include>
+                <include>qatcodec_env.sh</include>
+                <include>parcel.json</include>
+              </includes>
+            </resource>
+          </resources>
+        </configuration>
+        <executions>
+          <execution>
+            <id>copy-parcel-meta-template</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+          </execution> 
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <finalName>QATCODEC-${parcel.version}</finalName>
+          <descriptor>src/main/assembly/assembly.xml</descriptor>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>rename-parcel</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el6.parcel</destinationFile>
+                </fileSet>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el7.parcel</destinationFile>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
+

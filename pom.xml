@@ -50,85 +50,8 @@
     <module>hadoop_qat_wrapper</module>
     <module>spark_qat_wrapper</module>
     <module>carbondata_qat_wrapper</module>
+    <module>assembly</module>
   </modules>
-
-  <properties>
-    <parcel.version>${project.version}</parcel.version>
-  </properties>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <configuration>
-          <encoding>UTF-8</encoding>
-          <outputDirectory>${project.build.directory}/meta</outputDirectory>
-          <resources>
-            <resource>
-              <directory>assembly/meta</directory>
-              <filtering>true</filtering>
-              <includes>
-                <include>filelist.json</include>
-                <include>qatcodec_env.sh</include>
-                <include>parcel.json</include>
-              </includes>
-            </resource>
-          </resources>
-        </configuration>
-        <executions>
-          <execution>
-            <id>copy-parcel-meta-template</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-          </execution> 
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <configuration>
-          <finalName>QATCODEC-${parcel.version}</finalName>
-          <descriptor>assembly/assembly.xml</descriptor>
-        </configuration>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>com.coderplus.maven.plugins</groupId>
-        <artifactId>copy-rename-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>rename-parcel</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <fileSets>
-                <fileSet>
-                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
-                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el6.parcel</destinationFile>
-                </fileSet>
-                <fileSet>
-                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
-                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el7.parcel</destinationFile>
-                </fileSet>
-              </fileSets>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>
 

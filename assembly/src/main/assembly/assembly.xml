@@ -6,19 +6,19 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>hadoop_qat_wrapper/target</directory>
+      <directory>${project.parent.basedir}/hadoop_qat_wrapper/target</directory>
       <outputDirectory>lib/hadoop/lib</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
       <excludes>
         <exclude>*tests.jar</exclude>
-        <exclude>*docs.jar</exclude>
+        <exclude>*doc.jar</exclude>
       </excludes>
       <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
-      <directory>hadoop_qat_wrapper/target</directory>
+      <directory>${project.parent.basedir}/hadoop_qat_wrapper/target</directory>
       <outputDirectory>lib/hadoop/lib/native</outputDirectory>
       <includes>
         <include>*.so</include>
@@ -26,19 +26,19 @@
       <fileMode>755</fileMode>
     </fileSet>
     <fileSet>
-      <directory>spark_qat_wrapper/target</directory>
+      <directory>${project.parent.basedir}/spark_qat_wrapper/target</directory>
       <outputDirectory>lib/spark/lib</outputDirectory>
       <includes>
         <include>*.jar</include>
       </includes>
       <excludes>
         <exclude>*tests.jar</exclude>
-        <exclude>*docs.jar</exclude>
+        <exclude>*doc.jar</exclude>
       </excludes>
       <fileMode>0644</fileMode>
     </fileSet>
     <fileSet>
-      <directory>target/meta</directory>
+      <directory>${project.build.directory}/meta</directory>
       <outputDirectory>meta</outputDirectory>
       <includes>
         <include>*</include>
