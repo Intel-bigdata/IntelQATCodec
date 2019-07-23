@@ -21,9 +21,6 @@ package com.intel.qat.codec.io.nativ;
 import java.io.IOException;
 
 public class QatNative {
-  static {
-    System.loadLibrary("kafkaqatjni");
-  }
 
   public native void init();
 

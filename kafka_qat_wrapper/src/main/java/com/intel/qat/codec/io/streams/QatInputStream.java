@@ -87,14 +87,14 @@ public class QatInputStream extends InputStream {
     }
     int compressedLen = Math.max(8 * 1024, fragmentLength);
     compressed = new byte[compressedLen]; // 8K
-    System.arraycopy(fragment, 0, compressed, 0, fragmentLength);
+    Qat.arraycopy(fragment, 0, compressed, 0, fragmentLength);
     int cursor = fragmentLength;
     for (int readBytes = 0; (readBytes = in.read(compressed, cursor,
         compressed.length - cursor)) != -1;) {
       cursor += readBytes;
       if (cursor >= compressed.length) {
         byte[] newBuf = new byte[(compressed.length * 2)];
-        System.arraycopy(compressed, 0, newBuf, 0, compressed.length);
+        Qat.arraycopy(compressed, 0, newBuf, 0, compressed.length);
         compressed = newBuf;
       }
     }
@@ -124,7 +124,7 @@ public class QatInputStream extends InputStream {
       }
       int bytesToWrite = Math.min(uncompressedLimit - uncompressedCursor,
           byteLength - writtenBytes);
-      System.arraycopy(uncompressed, uncompressedCursor, b,
+      Qat.arraycopy(uncompressed, uncompressedCursor, b,
           byteOffset + writtenBytes, bytesToWrite);
       writtenBytes += bytesToWrite;
       uncompressedCursor += bytesToWrite;

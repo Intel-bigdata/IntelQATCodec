@@ -80,7 +80,7 @@ public class QatOutputStream extends OutputStream {
     while (cursor < byteLength) {
       int readLen = Math.min(byteLength - cursor, blockSize - inputCursor);
       if (readLen > 0) {
-        System.arraycopy(b, byteOffset + cursor, inputBuffer, inputCursor,
+        Qat.arraycopy(b, byteOffset + cursor, inputBuffer, inputCursor,
             readLen);
         inputCursor += readLen;
       }
@@ -138,7 +138,7 @@ public class QatOutputStream extends OutputStream {
     }
     byte[] tempOp = new byte[inputBuffer.length];
     int compressedSize = Qat.compress(inputBuffer, 0, inputCursor, tempOp, 0);
-    System.arraycopy(tempOp, 0, outputBuffer, outputCursor + 4, compressedSize);
+    Qat.arraycopy(tempOp, 0, outputBuffer, outputCursor + 4, compressedSize);
 
     QatCodec.writeInt(outputBuffer, outputCursor, compressedSize);
     outputCursor += 4 + compressedSize;

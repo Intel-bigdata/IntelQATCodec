@@ -46,6 +46,7 @@
 	  <groupId>commons-io</groupId>
 	  <artifactId>commons-io</artifactId>
       <version>2.6</version>
+      <scope>test</scope>
 	</dependency>
 	<dependency>
       <groupId>org.apache.kafka</groupId>
@@ -55,6 +56,14 @@
   </dependencies>
 
   <build>
+  	<resources>
+      <resource>
+        <directory>${basedir}/src/main/native</directory>
+        <includes>
+          <include>*.so</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
      <plugin>
        <groupId>net.alchim31.maven</groupId>

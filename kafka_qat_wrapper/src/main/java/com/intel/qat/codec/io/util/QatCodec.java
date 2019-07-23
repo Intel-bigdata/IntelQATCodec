@@ -81,7 +81,7 @@ public class QatCodec {
   }
 
   public int writeHeader(byte[] dst, int dstOffset) {
-    System.arraycopy(headerArray, 0, dst, dstOffset, headerArray.length);
+    Qat.arraycopy(headerArray, 0, dst, dstOffset, headerArray.length);
     return headerArray.length;
   }
 

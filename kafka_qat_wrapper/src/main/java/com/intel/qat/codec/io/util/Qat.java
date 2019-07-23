@@ -28,7 +28,8 @@ public class Qat {
 
   static {
     try {
-      impl = new QatNative();
+//      impl = new QatNative();
+      impl = QatLoader.loadQatApi();
       impl.init();
     } catch (Exception e) {
       throw new ExceptionInInitializerError(e);
@@ -55,5 +56,10 @@ public class Qat {
 
   public static int maxCompressedLength(int blockSize) {
     return impl.maxCompressedLength(blockSize);
+  }
+
+  public static void arraycopy(Object src, int srcPos, Object dest, int destPos,
+      int length) {
+    System.arraycopy(src, srcPos, dest, destPos, length);
   }
 }
