@@ -1,0 +1,45 @@
+{
+  "schema_version":     1,
+  "name":               "QATCODEC",
+  "version":            "${parcel.version}",
+  "extraVersionInfo": {
+    "fullVersion":        "${parcel.version}-el",
+    "baseVersion":        "qatcodec${parcel.version}",
+    "patchCount":         ""
+  },
+
+  "setActiveSymlink":   true,
+
+  "scripts": {
+    "defines": "qatcodec_env.sh"
+  },
+
+  "packages": [
+    { "name":    "hadoop-qat-codec",
+      "version": "${parcel.version}"
+    }
+    ,{ "name":    "spark-qat-codec",
+      "version":  "${parcel.version}"
+    }
+  ],
+
+  "components": [
+    { "name":    "hadoop-qat-codec",
+      "version": "${parcel.version}",
+      "pkg_version": "${parcel.version}"
+    }
+    ,{ "name":   "spark-qat-codec",
+      "version": "${parcel.version}",
+      "pkg_version": "${parcel.version}"
+    }
+  ],
+
+  "provides": [
+    "cdh-plugin",
+    "spark-plugin"
+  ],
+
+  "users": { },
+
+  "groups": [ ]
+}
