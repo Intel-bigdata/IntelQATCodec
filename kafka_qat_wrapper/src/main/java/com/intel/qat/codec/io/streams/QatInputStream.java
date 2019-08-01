@@ -19,29 +19,200 @@
 package com.intel.qat.codec.io.streams;
 
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
+import com.intel.qat.codec.io.buffer.BufferAllocator;
+import com.intel.qat.codec.io.buffer.CachedNativeByteBufferAllocator;
+import com.intel.qat.codec.io.conf.KafkaQatConfig;
 import com.intel.qat.codec.io.exception.QatErrorCode;
 import com.intel.qat.codec.io.exception.QatIOException;
-import com.intel.qat.codec.io.util.Qat;
+import com.intel.qat.codec.io.jni.QatNative;
 import com.intel.qat.codec.io.util.QatCodec;
 
+/**
+ * QatInputStream reads compressed data from the input stream and uncompresses
+ * the data as blocks.
+ */
 public class QatInputStream extends InputStream {
-  private boolean finishedReading = false;
-  private final InputStream in;
-
-  private byte[] compressed;
-  private byte[] uncompressed;
-
-  private int uncompressedCursor = 0;
-  private int uncompressedLimit = 0;
+  private InputStream in;
 
   private byte[] header = new byte[QatCodec.headerSize()];
 
-  public QatInputStream(InputStream input) throws IOException {
-    this.in = input;
+  private int uncompressedBlockSize;
+  private int compressedBlockSize;
+  private ByteBuffer uncompressedBuffer;
+  private ByteBuffer compressedBuffer;
+  private int originalLen;
+  private int uncompressedBufferPosition;
+  private boolean closed;
+  private boolean eof;
+  private byte[] tempBuffer;
+  private BufferAllocator allocator = CachedNativeByteBufferAllocator.get();
+
+  public QatInputStream(InputStream in) throws IOException {
+    this.in = in;
+    KafkaQatConfig conf = KafkaQatConfig.get();
+    this.uncompressedBlockSize = conf.getDecompressDecompressionBufferSize();
+    this.compressedBlockSize = conf.getDecompressCompressionBufferSize();
+
+    this.uncompressedBuffer = allocator.allocate(uncompressedBlockSize,
+        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer());
+    this.compressedBuffer = allocator.allocate(compressedBlockSize,
+        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer());
+
+    uncompressedBufferPosition = originalLen = 0;
+    closed = false;
+    eof = false;
+    tempBuffer = new byte[compressedBlockSize];
+
     readHeader();
+  }
+
+  @Override
+  public int available() throws IOException {
+    validateStream();
+    return originalLen - uncompressedBufferPosition;
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    validateStream();
+    if (b == null) {
+      throw new NullPointerException();
+    }
+    if (off < 0 || len < 0 || off > b.length - len) {
+      throw new ArrayIndexOutOfBoundsException(
+          "BlockInputStream read requested lenght " + len + " from offset "
+              + off + " in buffer of size " + b.length);
+    }
+
+    if (uncompressedBufferPosition == originalLen) {
+      decompressData();
+    }
+    if (eof) {
+      return -1;
+    }
+    len = Math.min(len, originalLen - uncompressedBufferPosition);
+    uncompressedBuffer.get(b, off, len);
+    uncompressedBufferPosition += len;
+    return len;
+  }
+
+  @Override
+  public int read(byte[] b) throws IOException {
+    return read(b, 0, b.length);
+  }
+
+  @Override
+  public int read() throws IOException {
+    byte[] oneByte = new byte[1];
+    int result = read(oneByte, 0, 1);
+    if (result > 0) {
+      return oneByte[0] & 0xff;
+    } else {
+      return result;
+    }
+  }
+
+  @Override
+  public long skip(long n) throws IOException {
+    validateStream();
+    if (uncompressedBufferPosition == originalLen) {
+      decompressData();
+    }
+    if (eof) {
+      return -1;
+    }
+    final int skipped = (int) Math.min(n,
+        originalLen - uncompressedBufferPosition);
+    uncompressedBufferPosition += skipped;
+    uncompressedBuffer.position(uncompressedBufferPosition);
+    return skipped;
+  }
+
+  private void decompressData() throws IOException {
+    int compressedLen = 0;
+    try {
+      byte[] length = new byte[4];
+      if (in.read(length) != 4) {
+        eof = true;
+        return;
+      }
+      compressedLen = QatCodec.readInt(length, 0);
+    } catch (IOException e) {
+      eof = true;
+      return;
+    }
+    if (compressedBuffer.capacity() < compressedLen) {
+      throw new IOException(
+          "Input Stream is corrupted, compressed length large than "
+              + compressedBlockSize);
+    }
+    readCompressedData(compressedBuffer, compressedLen);
+    try {
+      originalLen = QatNative.decompress(compressedBuffer, 0, compressedLen,
+          uncompressedBuffer, 0, uncompressedBlockSize);
+    } catch (Exception e) {
+      throw new IOException("Input Stream is corrupted, can't decompress", e);
+    }
+    uncompressedBuffer.position(0);
+    uncompressedBuffer.limit(originalLen);
+    uncompressedBufferPosition = 0;
+  }
+
+  private void readCompressedData(ByteBuffer b, int len) throws IOException {
+    int read = 0;
+    assert b.capacity() >= len;
+    b.clear();
+    while (read < len) {
+      final int bytesToRead = Math.min(len - read, tempBuffer.length);
+      final int r = in.read(tempBuffer, 0, bytesToRead);
+      if (r < 0) {
+        throw new EOFException("Unexpected end of block in input stream");
+      }
+      read += r;
+      b.put(tempBuffer, 0, r);
+    }
+    b.flip();
+  }
+
+  @Override
+  public boolean markSupported() {
+    return false;
+  }
+
+  @Override
+  public void mark(int readlimit) {
+    // unsupported
+  }
+
+  @Override
+  public void reset() throws IOException {
+    throw new IOException("mark/reset not supported");
+  }
+
+  @Override
+  public void close() throws IOException {
+    if (closed) {
+      return;
+    }
+    try {
+      in.close();
+    } finally {
+      allocator.release(compressedBuffer);
+      allocator.release(uncompressedBuffer);
+      tempBuffer = null;
+      in = null;
+      closed = true;
+    }
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(in=" + in + ")";
   }
 
   private void readHeader() throws IOException {
@@ -59,19 +230,23 @@ public class QatInputStream extends InputStream {
           "Cannot decompress empty stream");
     }
     if (readBytes < header.length || !QatCodec.hasMagicHeaderPrefix(header)) {
-      readFully(header, readBytes);
+      // No header found, read fully
       return;
+    }
+    if (!isValidHeader(header)) {
+      throw new QatIOException(QatErrorCode.PARSING_ERROR,
+          "Invalid header stream.");
     }
   }
 
   private boolean isValidHeader(byte[] header) throws IOException {
     QatCodec codec = QatCodec.readHeader(new ByteArrayInputStream(header));
     if (codec.isValidMagicHeader()) {
-      if (codec.version < QatCodec.MINIMUM_COMPATIBLE_VERSION) {
+      if (codec.getVersion() < QatCodec.MINIMUM_COMPATIBLE_VERSION) {
         throw new QatIOException(QatErrorCode.INCOMPATIBLE_VERSION,
             String.format(
                 "Compressed with an incompatible codec version %d. At least version %d is required",
-                codec.version, QatCodec.MINIMUM_COMPATIBLE_VERSION));
+                codec.getVersion(), QatCodec.MINIMUM_COMPATIBLE_VERSION));
       }
       return true;
     } else {
@@ -79,164 +254,9 @@ public class QatInputStream extends InputStream {
     }
   }
 
-  private void readFully(byte[] fragment, int fragmentLength)
-      throws IOException {
-    if (fragmentLength == 0) {
-      finishedReading = true;
-      return;
-    }
-    int compressedLen = Math.max(8 * 1024, fragmentLength);
-    compressed = new byte[compressedLen]; // 8K
-    Qat.arraycopy(fragment, 0, compressed, 0, fragmentLength);
-    int cursor = fragmentLength;
-    for (int readBytes = 0; (readBytes = in.read(compressed, cursor,
-        compressed.length - cursor)) != -1;) {
-      cursor += readBytes;
-      if (cursor >= compressed.length) {
-        byte[] newBuf = new byte[(compressed.length * 2)];
-        Qat.arraycopy(compressed, 0, newBuf, 0, compressed.length);
-        compressed = newBuf;
-      }
-    }
-
-    finishedReading = true;
-
-    // Uncompress
-    // int uncompressedLength = Qat.uncompressedLength(compressed, 0, cursor);
-    int uncompressedLength = compressedLen * 2;
-    uncompressed = new byte[uncompressedLength];
-    int uncompress = Qat.uncompress(compressed, 0, cursor, uncompressed, 0);
-    this.uncompressedCursor = 0;
-    this.uncompressedLimit = uncompress;
-    // this.uncompressedLimit = uncompressedLength;
-  }
-
-  @Override
-  public int read(byte[] b, int byteOffset, int byteLength) throws IOException {
-    int writtenBytes = 0;
-    while (writtenBytes < byteLength) {
-      if (uncompressedCursor >= uncompressedLimit) {
-        if (hasNextChunk()) {
-          continue;
-        } else {
-          return writtenBytes == 0 ? -1 : writtenBytes;
-        }
-      }
-      int bytesToWrite = Math.min(uncompressedLimit - uncompressedCursor,
-          byteLength - writtenBytes);
-      Qat.arraycopy(uncompressed, uncompressedCursor, b,
-          byteOffset + writtenBytes, bytesToWrite);
-      writtenBytes += bytesToWrite;
-      uncompressedCursor += bytesToWrite;
-    }
-    return writtenBytes;
-  }
-
-  private int readNext(byte[] dest, int offset, int len) throws IOException {
-    int readBytes = 0;
-    while (readBytes < len) {
-      int ret = in.read(dest, readBytes + offset, len - readBytes);
-      if (ret == -1) {
-        finishedReading = true;
-        return readBytes;
-      }
-      readBytes += ret;
-    }
-    return readBytes;
-  }
-
-  private boolean hasNextChunk() throws IOException {
-    if (finishedReading) {
-      return false;
-    }
-
-    uncompressedCursor = 0;
-    uncompressedLimit = 0;
-
-    int readBytes = readNext(header, 0, 4);
-    if (readBytes < 4) {
-      return false;
-    }
-
-    int chunkSize = QatCodec.readInt(header, 0);
-    if (chunkSize == QatCodec.MAGIC_HEADER_HEAD) {
-      int remainingHeaderSize = QatCodec.headerSize() - 4;
-      readBytes = readNext(header, 4, remainingHeaderSize);
-      if (readBytes < remainingHeaderSize) {
-        throw new QatIOException(QatErrorCode.FAILED_TO_UNCOMPRESS,
-            String.format("Insufficient header size in a concatenated block"));
-      }
-
-      if (isValidHeader(header)) {
-        return hasNextChunk();
-      } else {
-        return false;
-      }
-    }
-
-    // extend the compressed data buffer size
-    if (compressed == null || chunkSize > compressed.length) {
-      compressed = new byte[chunkSize];
-    }
-    readBytes = 0;
-    while (readBytes < chunkSize) {
-      int ret = in.read(compressed, readBytes, chunkSize - readBytes);
-      if (ret == -1) {
-        break;
-      }
-      readBytes += ret;
-    }
-    if (readBytes < chunkSize) {
-      throw new IOException("failed to read chunk");
-    }
-    int uncompressedLength = compressed.length * 2;
-    // if (uncompressed == null || uncompressedLength > uncompressed.length) {
-    uncompressed = new byte[uncompressedLength];
-    // }
-    int actualUncompressedLength = Qat.uncompress(compressed, 0, chunkSize,
-        uncompressed, 0);
-    // if (uncompressedLength != actualUncompressedLength) {
-    // throw new QatIOException(QatErrorCode.INVALID_CHUNK_SIZE, String.format(
-    // "expected %,d bytes, but decompressed chunk has %,d bytes",
-    // uncompressedLength, actualUncompressedLength));
-    // }
-    uncompressedLimit = actualUncompressedLength;
-
-    return true;
-  }
-
-  @Override
-  public int read() throws IOException {
-    if (uncompressedCursor < uncompressedLimit) {
-      return uncompressed[uncompressedCursor++] & 0xFF;
-    } else {
-      if (hasNextChunk()) {
-        return read();
-      } else {
-        return -1;
-      }
-    }
-  }
-
-  @Override
-  public int available() throws IOException {
-    if (uncompressedCursor < uncompressedLimit) {
-      return uncompressedLimit - uncompressedCursor;
-    } else {
-      if (hasNextChunk()) {
-        return uncompressedLimit - uncompressedCursor;
-      } else {
-        return 0;
-      }
-    }
-  }
-
-  @Override
-  public void close() throws IOException {
-    compressed = null;
-    uncompressed = null;
-    if (in != null) {
-      in.close();
+  private void validateStream() {
+    if (closed) {
+      throw new IllegalStateException("This output stream is already closed.");
     }
   }
 }

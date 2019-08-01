@@ -18,9 +18,27 @@
 
 package com.intel.qat.codec.io.buffer;
 
+import java.nio.ByteBuffer;
+
+/**
+ * ByteBuffer allocator interface for allocation and release it.
+ */
 public interface BufferAllocator {
 
-  public byte[] allocate(int size);
+  /**
+   * Allocates the ByteBuffer with the parameters specified.
+   *
+   * @param size - buffer size
+   * @param align - align for buffer
+   * @param useNative - whether use native or not
+   * @return - allocated byte buffer
+   */
+  ByteBuffer allocate(int size, int align, boolean useNative);
 
-  public void release(byte[] buffer);
+  /**
+   * Releases the ByteBuffer.
+   *
+   * @param buffer - buffer to release
+   */
+  void release(ByteBuffer buffer);
 }

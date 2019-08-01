@@ -21,6 +21,10 @@ package com.intel.qat.codec.io.util;
 import java.lang.reflect.Array;
 import java.util.Random;
 
+/**
+ * It generates random bytes for test data in test classes.
+ *
+ */
 public final class DataBytesGenerator {
   private DataBytesGenerator() {
   }

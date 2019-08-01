@@ -18,8 +18,10 @@
 
 package com.intel.qat.codec.io.exception;
 
+/**
+ * Kafka QAT error codes.
+ */
 public enum QatErrorCode {
-
   UNKNOWN(0),
   FAILED_TO_LOAD_NATIVE_LIBRARY(1),
   PARSING_ERROR(2),
@@ -30,9 +32,9 @@ public enum QatErrorCode {
   INCOMPATIBLE_VERSION(7),
   INVALID_CHUNK_SIZE(8);
 
-  public final int id;
+  private final int id;
 
-  private QatErrorCode(int id) {
+  QatErrorCode(int id) {
     this.id = id;
   }
 

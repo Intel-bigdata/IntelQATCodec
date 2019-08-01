@@ -29,6 +29,10 @@ import org.junit.Test;
 
 import com.intel.qat.codec.io.util.DataBytesGenerator;
 
+/**
+ * Test class to verify QatOutputStream.
+ *
+ */
 public class TestQatOutputStream {
 
   @Test

@@ -31,6 +31,10 @@ import org.junit.Test;
 import com.intel.qat.codec.io.exception.QatIOException;
 import com.intel.qat.codec.io.util.DataBytesGenerator;
 
+/**
+ * Test class to verify QatInputStream.
+ *
+ */
 public class TestQatInputStream {
 
   @Test
@@ -75,8 +79,7 @@ public class TestQatInputStream {
     byte[] input = DataBytesGenerator.get(10);
     try (QatInputStream in = new QatInputStream(
         new ByteArrayInputStream(compressData(input)))) {
-      int available = in.available();
-      byte[] data = new byte[available - 5];
+      byte[] data = new byte[5];
       int read = in.read(data, 0, data.length);
       assertArrayEquals("First part is not matching.",
           Arrays.copyOfRange(input, 0, read), data);
@@ -94,7 +97,7 @@ public class TestQatInputStream {
     try (QatInputStream in = new QatInputStream(
         new ByteArrayInputStream(compressData(input)))) {
       int available = in.available();
-      byte[] data = new byte[available];
+      byte[] data = new byte[10];
       in.read(data);
       available = in.available();
       assertEquals("No bytes should be available.", 0, available);

@@ -23,29 +23,32 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Arrays;
 
+/**
+ * Kafka QAT header while writing or reading to/from the streams.
+ */
 public class QatCodec {
 
-  static final byte[] MAGIC_HEADER = new byte[] { -126, 'Q', 'A', 'T', 'C', 'O',
-      'M', 0 };
-  public static final int MAGIC_LEN = MAGIC_HEADER.length;
-  public static final int HEADER_SIZE = MAGIC_LEN + 8;
-  public static final int MAGIC_HEADER_HEAD = readInt(MAGIC_HEADER, 0);
+  private static final byte[] MAGIC_HEADER = new byte[] { -126, 'Q', 'A', 'T',
+      'C', 'O', 'M', 0 };
+  private static final int MAGIC_LEN = MAGIC_HEADER.length;
+  private static final int HEADER_SIZE = MAGIC_LEN + 8;
+  private static final int MAGIC_HEADER_HEAD = readInt(MAGIC_HEADER, 0);
 
   static {
     assert (MAGIC_HEADER_HEAD < 0);
   }
 
-  public static final int DEFAULT_VERSION = 1;
+  private static final int DEFAULT_VERSION = 1;
   public static final int MINIMUM_COMPATIBLE_VERSION = 1;
-  public static final QatCodec currentHeader = new QatCodec(MAGIC_HEADER,
+  public static final QatCodec CURRENT_HEADER = new QatCodec(MAGIC_HEADER,
       DEFAULT_VERSION, MINIMUM_COMPATIBLE_VERSION);
 
-  public final byte[] magic;
-  public final int version;
-  public final int compatibleVersion;
+  private final byte[] magic;
+  private final int version;
+
+  private final int compatibleVersion;
   private final byte[] headerArray;
 
   public QatCodec(byte[] magic, int version, int compatibleVersion) {
@@ -81,17 +84,16 @@ public class QatCodec {
   }
 
   public int writeHeader(byte[] dst, int dstOffset) {
-    Qat.arraycopy(headerArray, 0, dst, dstOffset, headerArray.length);
-    return headerArray.length;
-  }
-
-  public int writeHeader(OutputStream out) throws IOException {
-    out.write(headerArray, 0, headerArray.length);
+    System.arraycopy(headerArray, 0, dst, dstOffset, headerArray.length);
     return headerArray.length;
   }
 
   public boolean isValidMagicHeader() {
     return Arrays.equals(MAGIC_HEADER, magic);
+  }
+
+  public int getVersion() {
+    return version;
   }
 
   public static boolean hasMagicHeaderPrefix(byte[] b) {

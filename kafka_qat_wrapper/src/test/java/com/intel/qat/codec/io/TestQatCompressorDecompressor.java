@@ -39,6 +39,9 @@ import com.intel.qat.codec.io.streams.QatInputStream;
 import com.intel.qat.codec.io.streams.QatOutputStream;
 import com.intel.qat.codec.io.util.DataBytesGenerator;
 
+/**
+ * Test class for verifying compression and decompression.
+ */
 public class TestQatCompressorDecompressor {
   private static final byte[] text = "This is test message for compression"
       .getBytes();
@@ -71,8 +74,7 @@ public class TestQatCompressorDecompressor {
     compressedFile = compressFile(inputFile);
     decompressedFile = decompressFile(compressedFile);
     boolean result = FileUtils.contentEquals(inputFile, decompressedFile);
-    assertTrue("Decompressed file is not matching with original file.",
-        result);
+    assertTrue("Decompressed file is not matching with original file.", result);
   }
 
   @After
@@ -93,9 +95,10 @@ public class TestQatCompressorDecompressor {
         FileInputStream fileIn = new FileInputStream(compressedFile);
         QatInputStream qatInputStream = new QatInputStream(fileIn);) {
       byte[] bytes = new byte[100];
-      while (qatInputStream.available() > 0) {
-        int read = qatInputStream.read(bytes);
+      int read = qatInputStream.read(bytes);
+      while (read > 0) {
         bufOut.write(bytes, 0, read);
+        read = qatInputStream.read(bytes);
       }
     }
     return decompressedFile;
@@ -124,7 +127,7 @@ public class TestQatCompressorDecompressor {
     java.util.Random random = new java.util.Random();
     File inputFile = new File("testdata" + random.nextLong());
     try (FileOutputStream out = new FileOutputStream(inputFile)) {
-      for (int i = 0; i < 1; i++) {
+      for (int i = 0; i < 100; i++) {
         out.write(DataBytesGenerator.get(10240));
       }
     }

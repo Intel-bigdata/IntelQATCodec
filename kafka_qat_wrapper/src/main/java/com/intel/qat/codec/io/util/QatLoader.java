@@ -26,12 +26,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.intel.qat.codec.io.exception.QatErrorCode;
 import com.intel.qat.codec.io.exception.QatIOException;
-import com.intel.qat.codec.io.nativ.QatNative;
 
-public class QatLoader {
-
+/**
+ * QatLoader loads the kafka qat library if available in the jar, otherwise it
+ * loads from the pre-installed kafka qat library.
+ */
+public final class QatLoader {
+  private static final Logger log = LoggerFactory.getLogger(QatLoader.class);
   private static final int EOF = -1;
   private static final String LIB_NAME = "kafkaqatjni";
   private static final String kafkaQatNativeLibraryName = "lib" + LIB_NAME
@@ -40,18 +46,26 @@ public class QatLoader {
 
   private static File nativeLibFile = null;
 
-  private static QatNative qatApi;
+  private static boolean qatApiLoaded;
 
-  public static synchronized QatNative loadQatApi() throws QatIOException {
-    if (qatApi == null) {
+  private QatLoader() {
+  }
+
+  /**
+   * loads the kafka qat library if available in the jar, otherwise loads from
+   * the pre-installed kafka qat library.
+   *
+   * @throws QatIOException - unavoidable condition
+   */
+  public static synchronized void loadQatApi() throws QatIOException {
+    if (!qatApiLoaded) {
       synchronized (QatLoader.class) {
-        if (qatApi == null) {
+        if (!qatApiLoaded) {
           loadNativeLibrary();
-          qatApi = new QatNative();
+          qatApiLoaded = true;
         }
       }
     }
-    return qatApi;
   }
 
   private static void loadNativeLibrary() throws QatIOException {
@@ -60,8 +74,12 @@ public class QatLoader {
       if (nativeLibFile != null) {
         // Load extracted or specified kafka qat native library.
         System.load(nativeLibFile.getAbsolutePath());
+        log.info("Loaded the " + nativeLibFile.getAbsolutePath()
+            + " library extracted from jar.");
       } else {
         // Load pre installed kafka qat (in the path -Djava.library.path)
+        log.info("Could not load the " + LIB_NAME
+            + "from the jar, loading the pre installed library.");
         System.loadLibrary(LIB_NAME);
       }
     } catch (Exception e) {
@@ -74,10 +92,7 @@ public class QatLoader {
     boolean hasNativeLib = QatLoader.class
         .getResource(PATH_PREFIX + kafkaQatNativeLibraryName) != null;
     if (!hasNativeLib) {
-      // throw new QatIOException(QatErrorCode.FAILED_TO_LOAD_NATIVE_LIBRARY,
-      // "no native kafka qat library is found with name "
-      // + kafkaQatNativeLibraryName);
-      System.err.println(QatErrorCode.FAILED_TO_LOAD_NATIVE_LIBRARY
+      log.warn(QatErrorCode.FAILED_TO_LOAD_NATIVE_LIBRARY
           + "no native kafka qat library is found with name "
           + kafkaQatNativeLibraryName);
       return null;
@@ -139,12 +154,12 @@ public class QatLoader {
 
       return extractedLibFile;
     } catch (IOException e) {
-      e.printStackTrace(System.err);
+      log.warn("Error while extracting the native library.", e);
       return null;
     }
   }
 
-  public static boolean contentEquals(InputStream input1, InputStream input2)
+  private static boolean contentEquals(InputStream input1, InputStream input2)
       throws IOException {
     if (input1 == input2) {
       return true;

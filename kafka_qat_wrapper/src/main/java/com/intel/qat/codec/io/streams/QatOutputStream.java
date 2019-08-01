@@ -20,133 +20,92 @@ package com.intel.qat.codec.io.streams;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import com.intel.qat.codec.io.buffer.BufferAllocator;
-import com.intel.qat.codec.io.buffer.BufferAllocatorFactory;
-import com.intel.qat.codec.io.buffer.CachedBufferAllocator;
-import com.intel.qat.codec.io.util.Qat;
+import com.intel.qat.codec.io.buffer.CachedNativeByteBufferAllocator;
+import com.intel.qat.codec.io.conf.KafkaQatConfig;
+import com.intel.qat.codec.io.jni.QatNative;
 import com.intel.qat.codec.io.util.QatCodec;
 
+/**
+ * QatOutputStream compresses the data as blocks and writes compressed data into
+ * the specified output stream.
+ */
 public class QatOutputStream extends OutputStream {
 
-  private static final int MIN_BLOCK_SIZE = 1 * 1024; // 1kb as min block size
-  private static final int DEFAULT_BLOCK_SIZE = 32 * 1024; // 32kb as default
-
-  private final OutputStream out;
-  private final int blockSize;
-
-  private final BufferAllocator inputBufferAllocator;
-  private final BufferAllocator outputBufferAllocator;
-
-  private byte[] inputBuffer;
-  private byte[] outputBuffer;
-
-  private int inputCursor = 0;
-  private int outputCursor = 0;
-
-  private boolean headerWritten;
+  private OutputStream out;
   private boolean closed;
 
+  private int compressionLevel;
+
+  private int uncompressedBlockSize;
+  private int compressedBlockSize;
+
+  private ByteBuffer uncompressedBuffer;
+  private ByteBuffer compressedBuffer;
+
+  private int uncompressedBufferPosition;
+  private byte[] tempBuffer;
+  private long context;
+  private BufferAllocator allocator = CachedNativeByteBufferAllocator.get();
+  private boolean headerWritten;
+
   public QatOutputStream(OutputStream out) {
-    this(out, DEFAULT_BLOCK_SIZE);
-  }
-
-  public QatOutputStream(OutputStream out, int blockSize) {
-    this(out, blockSize, CachedBufferAllocator.getBufferAllocatorFactory());
-  }
-
-  public QatOutputStream(OutputStream out, int blockSize,
-      BufferAllocatorFactory bufferAllocatorFactory) {
     this.out = out;
-    this.blockSize = Math.max(MIN_BLOCK_SIZE, blockSize);
-    int outputSize = QatCodec.HEADER_SIZE + 4
-        + Qat.maxCompressedLength(blockSize);
-    this.inputBufferAllocator = bufferAllocatorFactory
-        .getBufferAllocator(blockSize);
-    this.outputBufferAllocator = bufferAllocatorFactory
-        .getBufferAllocator(outputSize);
+    KafkaQatConfig conf = KafkaQatConfig.get();
 
-    inputBuffer = inputBufferAllocator.allocate(blockSize);
-    outputBuffer = outputBufferAllocator.allocate(outputSize);
+    this.compressionLevel = conf.getCompressionLevel();
+    this.uncompressedBlockSize = conf.getCompressDecompressionBufferSize();
+    this.compressedBlockSize = conf.getCompressCompressionBufferSize();
+
+    this.uncompressedBuffer = allocator.allocate(uncompressedBlockSize,
+        conf.getCompressAlignSize(), conf.isCompressUseNativeBuffer());
+    this.compressedBuffer = allocator.allocate(compressedBlockSize,
+        conf.getCompressAlignSize(), conf.isCompressUseNativeBuffer());
+
+    uncompressedBufferPosition = 0;
+    closed = false;
+
+    tempBuffer = new byte[compressedBlockSize];
+
+    context = QatNative.createCompressContext(compressionLevel);
   }
 
   @Override
-  public void write(byte[] b, int byteOffset, int byteLength)
-      throws IOException {
-    if (closed) {
-      throw new IOException("Stream is closed");
+  public void write(byte[] b, int off, int len) throws IOException {
+    validateStream();
+    if (b == null) {
+      throw new NullPointerException();
     }
-    int cursor = 0;
-    while (cursor < byteLength) {
-      int readLen = Math.min(byteLength - cursor, blockSize - inputCursor);
-      if (readLen > 0) {
-        Qat.arraycopy(b, byteOffset + cursor, inputBuffer, inputCursor,
-            readLen);
-        inputCursor += readLen;
-      }
-      if (inputCursor < blockSize) {
-        return;
-      }
-      compressInput();
-      cursor += readLen;
+    if (off < 0 || len < 0 || off > b.length - len) {
+      throw new ArrayIndexOutOfBoundsException(
+          "BlockOutputStream write requested lenght " + len + " from offset "
+              + off + " in buffer of size " + b.length);
     }
+
+    while (uncompressedBufferPosition + len > uncompressedBlockSize) {
+      int left = uncompressedBlockSize - uncompressedBufferPosition;
+      uncompressedBuffer.put(b, off, left);
+      uncompressedBufferPosition = uncompressedBlockSize;
+      compressBufferedData();
+      off += left;
+      len -= left;
+    }
+    uncompressedBuffer.put(b, off, len);
+    uncompressedBufferPosition += len;
+  }
+
+  @Override
+  public void write(byte[] b) throws IOException {
+    write(b, 0, b.length);
   }
 
   @Override
   public void write(int b) throws IOException {
-    if (closed) {
-      throw new IOException("Stream is closed");
-    }
-    if (inputCursor >= inputBuffer.length) {
-      compressInput();
-    }
-    inputBuffer[inputCursor++] = (byte) b;
-  }
-
-  @Override
-  public void flush() throws IOException {
-    if (closed) {
-      throw new IOException("Stream is closed");
-    }
-    compressInput();
-    dumpOutput();
-    out.flush();
-  }
-
-  private boolean hasSufficientOutputBufferFor(int inputSize) {
-    int maxCompressedSize = Qat.maxCompressedLength(inputSize);
-    return maxCompressedSize < outputBuffer.length - outputCursor - 4;
-  }
-
-  private void dumpOutput() throws IOException {
-    if (outputCursor > 0) {
-      out.write(outputBuffer, 0, outputCursor);
-      outputCursor = 0;
-    }
-  }
-
-  private void compressInput() throws IOException {
-    if (!headerWritten) {
-      outputCursor = writeHeader();
-      headerWritten = true;
-    }
-    if (inputCursor <= 0) {
-      return;
-    }
-    if (!hasSufficientOutputBufferFor(inputCursor)) {
-      dumpOutput();
-    }
-    byte[] tempOp = new byte[inputBuffer.length];
-    int compressedSize = Qat.compress(inputBuffer, 0, inputCursor, tempOp, 0);
-    Qat.arraycopy(tempOp, 0, outputBuffer, outputCursor + 4, compressedSize);
-
-    QatCodec.writeInt(outputBuffer, outputCursor, compressedSize);
-    outputCursor += 4 + compressedSize;
-    inputCursor = 0;
-  }
-
-  private int writeHeader() {
-    return QatCodec.currentHeader.writeHeader(outputBuffer, 0);
+    byte[] oneByte = new byte[1];
+    oneByte[0] = (byte) b;
+    write(oneByte, 0, 1);
   }
 
   @Override
@@ -155,14 +114,76 @@ public class QatOutputStream extends OutputStream {
       return;
     }
     try {
-      flush();
+      finish();
       out.close();
     } finally {
       closed = true;
-      inputBufferAllocator.release(inputBuffer);
-      outputBufferAllocator.release(outputBuffer);
-      inputBuffer = null;
-      outputBuffer = null;
+      allocator.release(compressedBuffer);
+      allocator.release(uncompressedBuffer);
+      tempBuffer = null;
+      out = null;
+      context = 0;
     }
+  }
+
+  private void compressBufferedData() throws IOException {
+    if (uncompressedBufferPosition == 0) {
+      return;
+    }
+    int compressedLength = QatNative.compress(context, uncompressedBuffer, 0,
+        uncompressedBufferPosition, compressedBuffer, 0, compressedBlockSize);
+    int header = 0;
+    if (!headerWritten) {
+      header = writeHeader(tempBuffer);
+      headerWritten = true;
+    }
+
+    QatCodec.writeInt(tempBuffer, header, compressedLength);
+    compressedBuffer.position(0);
+    compressedBuffer.limit(compressedLength);
+    int totalWritten = 0;
+    int off = 4 + header;
+    while (totalWritten < compressedLength) {
+      int bytesToWrite = Math.min((compressedLength - totalWritten),
+          tempBuffer.length - off);
+      compressedBuffer.get(tempBuffer, off, bytesToWrite);
+      out.write(tempBuffer, 0, bytesToWrite + off);
+      totalWritten += bytesToWrite;
+      off = 0;
+    }
+    uncompressedBuffer.clear();
+    compressedBuffer.clear();
+    uncompressedBufferPosition = 0;
+  }
+
+  public void finish() throws IOException {
+    validateStream();
+    compressBufferedData();
+    out.flush();
+  }
+
+  @Override
+  public void flush() throws IOException {
+    super.flush();
+    finish();
+  }
+
+  private void validateStream() {
+    if (context == 0) {
+      throw new NullPointerException();
+    }
+    if (closed) {
+      throw new IllegalStateException("This output stream is already closed");
+    }
+  }
+
+  private int writeHeader(byte[] outputBuffer) {
+    return QatCodec.CURRENT_HEADER.writeHeader(outputBuffer, 0);
+  }
+
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(out=" + out + ", level="
+        + compressionLevel + ", blockSize=" + uncompressedBlockSize + ")";
   }
 }
