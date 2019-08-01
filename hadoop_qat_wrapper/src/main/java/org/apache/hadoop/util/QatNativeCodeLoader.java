@@ -48,12 +48,8 @@ public class QatNativeCodeLoader {
       LOG.debug("Loaded the native-qat library");
       nativeCodeLoaded = true;
     } catch (Throwable t) {
-      // Ignore failure to load
-      if(LOG.isDebugEnabled()) {
-        LOG.debug("Failed to load native-qat with error: " + t);
-        LOG.debug("java.library.path=" +
-            System.getProperty("java.library.path"));
-      }
+      LOG.error("Failed to load native-qat with error: ", t);
+      LOG.error("java.library.path=" + System.getProperty("java.library.path"));
     }
 
     if (!nativeCodeLoaded) {

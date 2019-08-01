@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License. See accompanying LICENSE file.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                      http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>assembly</artifactId>
+  <description>QATCodec Release Package Builder</description>
+  <name>QATCodec Package Builder</name>
+  <packaging>pom</packaging>
+
+  <properties>
+    <parcel.version>${project.version}</parcel.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+        <executions>
+          <execution>
+            <id>create-parcel-meta-data</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/meta</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.parent.basedir}/assembly/src/main/assembly/meta</directory>
+                  <filtering>true</filtering>
+                  <includes>
+                    <include>filelist.json</include>
+                    <include>qatcodec_env.sh</include>
+                    <include>parcel.json</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <finalName>QATCODEC-${parcel.version}</finalName>
+          <descriptor>src/main/assembly/assembly.xml</descriptor>
+        </configuration>
+        <executions>
+          <execution>
+            <id>make-parcels</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.coderplus.maven.plugins</groupId>
+        <artifactId>copy-rename-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>rename-parcel</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <fileSets>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el6.parcel</destinationFile>
+                </fileSet>
+                <fileSet>
+                  <sourceFile>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</sourceFile>
+                  <destinationFile>${project.build.directory}/QATCODEC-${parcel.version}-el7.parcel</destinationFile>
+                </fileSet>
+              </fileSets>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.googlecode.maven-download-plugin</groupId>
+        <artifactId>maven-download-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>download-cm_ext</id>
+            <phase>package</phase>
+            <goals>
+              <goal>wget</goal>
+            </goals>
+            <configuration>
+              <url>https://github.com/cloudera/cm_ext/archive/master.zip</url>
+              <unpack>true</unpack>
+              <targetDirectory>${project.build.directory}</targetDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-parcel-manifests</id>
+            <phase>package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>python</executable>
+              <workingDirectory>${project.build.directory}</workingDirectory>
+              <arguments>
+                <argument>${project.build.directory}/cm_ext-master/make_manifest/make_manifest.py</argument>
+                <argument>${project.build.directory}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>make-checksum-signatures</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>bash</executable>
+              <workingDirectory>${project.build.directory}</workingDirectory>
+              <arguments>
+                <argument>${project.parent.basedir}/assembly/src/main/bash/create-release</argument>
+                <argument>${project.build.directory}/QATCODEC-${parcel.version}.tar.gz</argument> 
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-release-package</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <move file="${project.build.directory}/QATCODEC-${parcel.version}-el6.parcel" 
+                      todir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/parcel" />
+                <move file="${project.build.directory}/QATCODEC-${parcel.version}-el7.parcel" 
+                      todir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/parcel" />
+                <move file="${project.build.directory}/manifest.json"
+                      todir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/parcel" />
+                <delete file="${project.build.directory}/QATCODEC-${parcel.version}.tar.gz" />
+                <copy file="src/main/resources/ReadMe-nonCDH.txt"
+                      tofile="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/ReadMe.txt" />
+                <copy file="src/main/resources/ReadMe.txt"
+                      todir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}" />
+                <move todir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}">
+                  <fileset dir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/lib/hadoop/lib">
+                    <include name="*.jar"/>
+                  </fileset>
+                  <fileset dir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/lib/hadoop/lib/native">
+                    <include name="*.so"/>
+                  </fileset>
+                  <fileset dir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/lib/spark/lib">
+                    <include name="*.jar"/>
+                  </fileset>
+                </move>
+                <delete dir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/lib" />
+                <delete dir="${project.build.directory}/QATCODEC-${parcel.version}/QATCODEC-${parcel.version}/meta" />
+                <tar destfile="${project.build.directory}/QATCODEC-${parcel.version}.tar.gz"
+                     basedir="${project.build.directory}/QATCODEC-${parcel.version}" 
+                     compression="gzip" />
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
