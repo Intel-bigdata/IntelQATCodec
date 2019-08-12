@@ -84,7 +84,7 @@ public final class KafkaQatConfig {
     try {
       instance.loadConfig();
     } catch (IOException e) {
-      System.exit(-1);
+      throw new ExceptionInInitializerError(e);
     }
   }
 

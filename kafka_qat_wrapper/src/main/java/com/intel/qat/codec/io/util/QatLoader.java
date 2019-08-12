@@ -37,10 +37,10 @@ import com.intel.qat.codec.io.exception.QatIOException;
  * loads from the pre-installed kafka qat library.
  */
 public final class QatLoader {
-  private static final Logger log = LoggerFactory.getLogger(QatLoader.class);
+  private static final Logger LOG = LoggerFactory.getLogger(QatLoader.class);
   private static final int EOF = -1;
   private static final String LIB_NAME = "kafkaqatjni";
-  private static final String kafkaQatNativeLibraryName = "lib" + LIB_NAME
+  private static final String KAFKA_QAT_NATIVE_LIBRARY_NAME = "lib" + LIB_NAME
       + ".so";
   private static final String PATH_PREFIX = "/";
 
@@ -74,11 +74,11 @@ public final class QatLoader {
       if (nativeLibFile != null) {
         // Load extracted or specified kafka qat native library.
         System.load(nativeLibFile.getAbsolutePath());
-        log.info("Loaded the " + nativeLibFile.getAbsolutePath()
+        LOG.info("Loaded the " + nativeLibFile.getAbsolutePath()
             + " library extracted from jar.");
       } else {
         // Load pre installed kafka qat (in the path -Djava.library.path)
-        log.info("Could not load the " + LIB_NAME
+        LOG.info("Could not load the " + LIB_NAME
             + "from the jar, loading the pre installed library.");
         System.loadLibrary(LIB_NAME);
       }
@@ -90,11 +90,11 @@ public final class QatLoader {
 
   private static File findNativeLibrary() throws QatIOException {
     boolean hasNativeLib = QatLoader.class
-        .getResource(PATH_PREFIX + kafkaQatNativeLibraryName) != null;
+        .getResource(PATH_PREFIX + KAFKA_QAT_NATIVE_LIBRARY_NAME) != null;
     if (!hasNativeLib) {
-      log.warn(QatErrorCode.FAILED_TO_LOAD_NATIVE_LIBRARY
-          + "no native kafka qat library is found with name "
-          + kafkaQatNativeLibraryName);
+      LOG.warn(QatErrorCode.FAILED_TO_LOAD_NATIVE_LIBRARY
+          + " no native kafka qat library is found with name "
+          + KAFKA_QAT_NATIVE_LIBRARY_NAME);
       return null;
     }
 
@@ -103,11 +103,14 @@ public final class QatLoader {
     File tempFolder = new File(System.getProperty("java.io.tmpdir"));
     if (!tempFolder.exists()) {
       // if created == false, it will fail eventually in the later part
-      tempFolder.mkdirs();
+      if (!tempFolder.mkdirs()) {
+        LOG.warn(
+            "Failed to create the temp dir : " + tempFolder.getAbsolutePath());
+      }
     }
 
     // Extract and load a native library inside the jar file
-    return extractLibraryFile(kafkaQatNativeLibraryName,
+    return extractLibraryFile(KAFKA_QAT_NATIVE_LIBRARY_NAME,
         tempFolder.getAbsolutePath());
   }
 
@@ -154,7 +157,7 @@ public final class QatLoader {
 
       return extractedLibFile;
     } catch (IOException e) {
-      log.warn("Error while extracting the native library.", e);
+      LOG.warn("Error while extracting the native library.", e);
       return null;
     }
   }
