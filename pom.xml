@@ -20,12 +20,17 @@
 
   <groupId>com.intel.qat</groupId>
   <artifactId>qat-parent</artifactId>
-  <version>1.0.0</version>
+  <version>2.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>QATCodec</name>
   <description>QAT Codec for Apache Hadoop and Spark</description>
   <url>https://github.com/intel-hadoop/IntelQATCodec</url>
+  
+  <properties>
+    <qatzip.libs>/usr/lib64/</qatzip.libs>
+    <qatzip.src>/opt/intel/QATzip</qatzip.src>
+  </properties>  
 
   <repositories>
     <repository>
