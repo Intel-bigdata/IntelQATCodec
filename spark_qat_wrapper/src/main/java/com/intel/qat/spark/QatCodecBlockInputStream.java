@@ -56,6 +56,11 @@ public final class QatCodecBlockInputStream extends FilterInputStream {
    *                          must be >= 32k
    */
   public QatCodecBlockInputStream(InputStream in, int blockSize, boolean useNativeBuffer) {
+    this(in, blockSize, useNativeBuffer, true, true, false);
+  }
+
+  public QatCodecBlockInputStream(InputStream in, int blockSize,
+      boolean useNativeBuffer, boolean useQzMalloc, boolean useForcePinned, boolean useNuma) {
     super(in);
     this.uncompressedBlockSize = blockSize;
     this.compressedBlockSize = blockSize * 3 / 2;
@@ -64,10 +69,12 @@ public final class QatCodecBlockInputStream extends FilterInputStream {
     this.compressedBufferAllocator = CachedBufferAllocator
         .getBufferAllocatorFactory().getBufferAllocator(compressedBlockSize);
     this.uncompressedBuffer = uncompressedBufferAllocator
-        .allocateDirectByteBuffer(useNativeBuffer, uncompressedBlockSize, 64);
-    this.compressedBuffer = compressedBufferAllocator
-        .allocateDirectByteBuffer(useNativeBuffer, compressedBlockSize, 64);
-    
+        .allocateDirectByteBuffer(useNativeBuffer, uncompressedBlockSize, 64,
+            useQzMalloc, useForcePinned, useNuma);
+    this.compressedBuffer = compressedBufferAllocator.allocateDirectByteBuffer(
+        useNativeBuffer, compressedBlockSize, 64, useQzMalloc, useForcePinned,
+        useNuma);
+
     if(null!=uncompressedBuffer){
       uncompressedBuffer.clear();
     }

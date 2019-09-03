@@ -285,3 +285,9 @@ Java_com_intel_qat_jni_QatCodecJNI_decompress(
 
     return uncompressed_size;
 }
+
+JNIEXPORT jobject JNICALL
+Java_com_intel_qat_jni_QatCodecJNI_qzMalloc(JNIEnv *env,
+ jobject obj, jlong capacity, jboolean numa, jboolean force_pinned){
+  return (*env)->NewDirectByteBuffer(env, qzMalloc(capacity, numa, force_pinned), capacity);
+}

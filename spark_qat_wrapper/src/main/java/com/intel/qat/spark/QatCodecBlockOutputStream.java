@@ -64,8 +64,14 @@ public final class QatCodecBlockOutputStream extends FilterOutputStream {
    * @param blockSize   the maximum number of bytes to try to compress at once,
    *                    must be >= 32 K
    */
-  public QatCodecBlockOutputStream(OutputStream out,
-          int level, int blockSize, boolean useNativeBuffer) {
+  public QatCodecBlockOutputStream(OutputStream out, int level, int blockSize,
+      boolean useNativeBuffer) {
+    this(out, level, blockSize, useNativeBuffer, true, true, false);
+  }
+
+  public QatCodecBlockOutputStream(OutputStream out, int level, int blockSize,
+      boolean useNativeBuffer, boolean useQzMalloc, boolean useForcePinned,
+      boolean useNuma) {
     super(out);
     this.level = level;
     this.uncompressedBlockSize = blockSize;
@@ -74,10 +80,12 @@ public final class QatCodecBlockOutputStream extends FilterOutputStream {
             getBufferAllocatorFactory().getBufferAllocator(uncompressedBlockSize);
     this.compressedBufferAllocator = CachedBufferAllocator.
             getBufferAllocatorFactory().getBufferAllocator(compressedBlockSize);
-    this.uncompressedBuffer = uncompressedBufferAllocator.
-            allocateDirectByteBuffer(useNativeBuffer, uncompressedBlockSize, 64);
-    this.compressedBuffer = compressedBufferAllocator.
-            allocateDirectByteBuffer(useNativeBuffer, compressedBlockSize, 64);
+    this.uncompressedBuffer = uncompressedBufferAllocator
+        .allocateDirectByteBuffer(useNativeBuffer, uncompressedBlockSize, 64,
+            useQzMalloc, useForcePinned, useNuma);
+    this.compressedBuffer = compressedBufferAllocator.allocateDirectByteBuffer(
+        useNativeBuffer, compressedBlockSize, 64, useQzMalloc, useForcePinned,
+        useNuma);
     if(uncompressedBuffer != null) {
       uncompressedBuffer.clear();
     }

@@ -25,7 +25,8 @@ import java.nio.ByteBuffer;
 public interface BufferAllocator
 {
 
-  public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align);
+  public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size,
+      int align, boolean useQzMalloc, boolean useForcePinned, boolean useNuma);
 
   public void releaseDirectByteBuffer(ByteBuffer buffer);
 

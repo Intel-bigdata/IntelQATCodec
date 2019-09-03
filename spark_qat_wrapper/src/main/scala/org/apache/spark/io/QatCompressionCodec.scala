@@ -43,7 +43,14 @@ class QatCompressionCodec(conf: SparkConf) extends CompressionCodec {
         "1024k").toInt
     val useNativeBuffer = conf.getBoolean("spark.io.compression.qat.useNativeBuffer",
         false)
-    new QatCodecBlockOutputStream(s, level, bufferSize, useNativeBuffer)
+    val useQzMalloc = conf.getBoolean("spark.io.compression.qat.native-bb.useQzMalloc",
+        true)
+    val useForcePinned = conf.getBoolean("spark.io.compression.qat.native-bb.useForcePinned",
+        true)
+    val useNuma = conf.getBoolean("spark.io.compression.qat.native-bb.useNuma",
+        false)
+    new QatCodecBlockOutputStream(s, level, bufferSize, useNativeBuffer, useQzMalloc,
+        useForcePinned, useNuma)
   }
 
   override def compressedInputStream(s: InputStream): InputStream = {
@@ -51,6 +58,13 @@ class QatCompressionCodec(conf: SparkConf) extends CompressionCodec {
         "1024k").toInt
     val useNativeBuffer = conf.getBoolean("spark.io.compression.qat.useNativeBuffer",
         false)
-    new QatCodecBlockInputStream(s, bufferSize, useNativeBuffer)
+    val useQzMalloc = conf.getBoolean("spark.io.compression.qat.native-bb.useQzMalloc",
+        true)
+    val useForcePinned = conf.getBoolean("spark.io.compression.qat.native-bb.useForcePinned",
+        true)
+    val useNuma = conf.getBoolean("spark.io.compression.qat.native-bb.useNuma",
+        false)
+    new QatCodecBlockInputStream(s, bufferSize, useNativeBuffer, useQzMalloc, useForcePinned,
+        useNuma)
   }
 }
