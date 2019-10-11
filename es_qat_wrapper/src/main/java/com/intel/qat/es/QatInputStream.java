@@ -70,7 +70,7 @@ public class QatInputStream extends FilterInputStream {
            throw new IllegalArgumentException("buffer size <= 0");
         }
 
-        this.compressedSize = size * 3 / 2;  ///////????  maybe  :  size * 2 / 3
+        this.compressedSize = size * 3 / 2;
         this.uncompressedSize = size;
 
         // allocate the buffer
@@ -94,7 +94,7 @@ public class QatInputStream extends FilterInputStream {
         this.uncompressedBufferPosition = 0;
         this.originalLen = 0;
 
-        // 缓存 compressed stream
+        // cache compressed stream
         tempBufferAllocator = CachedBufferAllocator
                 .getBufferAllocatorFactory().getBufferAllocator(compressedSize);
         tempBuffer = tempBufferAllocator
@@ -131,15 +131,6 @@ public class QatInputStream extends FilterInputStream {
     @Override
     public int available() throws IOException {
         checkStream();
-       /* equals to originalLen - uncompressedBufferPosition
-       if(reachEOF){
-            return 0;
-        }else if(){// the end of the compressed data stream has been reached
-            return 0;
-        }else {
-            return 1;
-        }*/
-
         return originalLen - uncompressedBufferPosition;
     }
 

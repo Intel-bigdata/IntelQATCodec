@@ -27,11 +27,8 @@ import com.intel.qat.util.NativeCodeLoader;
 public enum QatCodecJNI {
   ;
   static {
-    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!for test NativeCodecloader()!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
     NativeCodeLoader.load();
-    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!! test load() finished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
     init();
-    System.out.println("------------------init  end   ------------------------------------------------------");
 
   }
 

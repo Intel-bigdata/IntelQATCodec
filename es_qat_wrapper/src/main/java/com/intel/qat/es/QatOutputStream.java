@@ -60,8 +60,8 @@ private static final Logger LOG =
 
 
     this.level = level;
-    this.uncompressedSize = size ;  //maybe  size * 3 /2
-    this.compressedSize = size * 3 / 2; //  maybe  size ;
+    this.uncompressedSize = size ;
+    this.compressedSize = size * 3 / 2;
     this.uncompressedBufferAllocator = CachedBufferAllocator.
             getBufferAllocatorFactory().getBufferAllocator(uncompressedSize);
     this.compressedBufferAllocator = CachedBufferAllocator.
