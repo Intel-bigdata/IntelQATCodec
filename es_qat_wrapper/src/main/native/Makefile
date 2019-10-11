@@ -24,7 +24,7 @@ endif
 # A function to check whether every environment variable in a list is defined.
 check = $(foreach var,$(1),$(if $($(var)),,$(error Please set $(var))))
 
-TARGET := libQatCodecES.so
+TARGET := libQatCodecEs.so
 
 MODULES :=
 

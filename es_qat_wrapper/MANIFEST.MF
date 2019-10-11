@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Built-By: root
+Created-By: Apache Maven 3.3.9
+Build-Jdk: 1.8.0_131
+Application-Name: One Applet
+Codebase: *
+Permissions: all-permissions
+Application-Library-Allowable-Codebase: *
+Caller-Allowable-Codebase: *
+Trusted-Only: false
+Trusted-Library: false
+

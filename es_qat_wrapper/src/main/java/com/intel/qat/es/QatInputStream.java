@@ -1,17 +1,17 @@
 package com.intel.qat.es;
 
 
- import com.intel.qat.jni.QatCodecJNI;
- import com.intel.qat.util.buffer.BufferAllocator;
- import com.intel.qat.util.buffer.CachedBufferAllocator;
+import com.intel.qat.jni.QatCodecJNI;
+import com.intel.qat.util.buffer.BufferAllocator;
+import com.intel.qat.util.buffer.CachedBufferAllocator;
 
- import java.io.EOFException;
- import java.io.FilterInputStream;
- import java.io.IOException;
- import java.io.InputStream;
- import java.nio.ByteBuffer;
- import java.util.zip.DataFormatException;
- import java.util.zip.ZipException;
+import java.io.EOFException;
+import java.io.FilterInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.zip.DataFormatException;
+import java.util.zip.ZipException;
 
 /***
  *This class implements a stream filter for uncompressing data in the
@@ -19,6 +19,8 @@ package com.intel.qat.es;
  *
  * */
 public class QatInputStream extends FilterInputStream {
+
+
 
     /**
      * Input buffer for decompression.
@@ -65,7 +67,7 @@ public class QatInputStream extends FilterInputStream {
         if (in == null) {
             throw new NullPointerException();
         } else if (size <= 0) {
-            throw new IllegalArgumentException("buffer size <= 0");
+           throw new IllegalArgumentException("buffer size <= 0");
         }
 
         this.compressedSize = size * 3 / 2;  ///////????  maybe  :  size * 2 / 3
@@ -148,11 +150,11 @@ public class QatInputStream extends FilterInputStream {
      * @param in the input stream
      * @param useNativeBuffer  if the buffer is native
      */
-    public QatInputStream(InputStream in, boolean useNativeBuffer){
-        this(in, 512,useNativeBuffer);
-    }
+     public QatInputStream(InputStream in, boolean useNativeBuffer){
+         this(in, 512,useNativeBuffer);
+     }
 
-    boolean useDefaultQatDecompressor = false;
+     boolean useDefaultQatDecompressor = false;
 
     /***
      * Creates a new input stream with a default buffer and buffer size.
@@ -203,7 +205,7 @@ public class QatInputStream extends FilterInputStream {
             return 0;
         }
 
-
+        
         if(uncompressedBufferPosition == originalLen){
             fill();
         }
@@ -223,7 +225,7 @@ public class QatInputStream extends FilterInputStream {
         checkStream();
         int compressedLen =0;// buf.length; //yao jie ya suo de shu ju de da xiao
         try{
-            compressedLen = readCompressedBlockLength();
+           compressedLen = readCompressedBlockLength();
         }catch(IOException e){
             reachEOF = true;
             return;
@@ -236,7 +238,7 @@ public class QatInputStream extends FilterInputStream {
         readCompressedData(compressedBuffer,compressedLen);
 
         try{
-            final int uncompressed_size = QatCodecJNI.decompress(context,uncompressedBuffer,0,compressedLen,compressedBuffer,0,uncompressedSize);
+            final int uncompressed_size = QatCodecJNI.decompress(context,compressedBuffer,0,compressedLen,uncompressedBuffer,0,uncompressedSize);
             originalLen = uncompressed_size;
 
 
@@ -258,9 +260,9 @@ public class QatInputStream extends FilterInputStream {
         int b3 = in.read();
         int b4 = in.read();
         if ((b1 | b2 | b3 | b4) < 0)
-            throw new EOFException();
+                throw new EOFException();
         return ((b4 << 24) + (b3 << 16) + (b2 << 8) + (b1 << 0));
-    }
+  }
 
     private void readCompressedData(ByteBuffer bf, int len) throws IOException {
         int read = 0;
@@ -355,7 +357,7 @@ public class QatInputStream extends FilterInputStream {
     public synchronized void mark(int readlimit){
 
     }
-
+    
 
     /**
      * Repositions this stream to the position at the time the

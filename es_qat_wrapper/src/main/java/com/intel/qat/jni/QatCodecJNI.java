@@ -17,9 +17,9 @@
 
 package com.intel.qat.jni;
 
-import com.intel.qat.util.NativeCodeLoader;
-
 import java.nio.ByteBuffer;
+
+import com.intel.qat.util.NativeCodeLoader;
 
 /**
  * JNI bindings to the original C implementation of QatCodec.
@@ -27,8 +27,12 @@ import java.nio.ByteBuffer;
 public enum QatCodecJNI {
   ;
   static {
+    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!for test NativeCodecloader()!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
     NativeCodeLoader.load();
+    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!! test load() finished!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
     init();
+    System.out.println("------------------init  end   ------------------------------------------------------");
+
   }
 
   static native void init();

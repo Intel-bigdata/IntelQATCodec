@@ -39,3 +39,5 @@ columnar_format_qat_wrapper/target/
 javah/
 jni-header/
 target/
+es_qat_wrapper_backup
+es_qat_wrapper/src/main/java/com/intel/qat/es/QatCompressor

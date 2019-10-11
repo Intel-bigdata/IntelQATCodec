@@ -28,6 +28,8 @@
 
 #include "qatzip.h"
 
+#include <stdio.h>
+
 /* A helper macro to 'throw' a java exception. */
 #define THROW(env, exception_name, message) \
 { \
@@ -50,7 +52,8 @@ typedef int (*dlsym_qzGetDefaults)(QzSessionParams_T *defaults);
 typedef int (*dlsym_qzSetDefaults)(QzSessionParams_T *defaults);
 
 
-typedef struct qat_wrapper_context {                                                                                                     int magic;
+typedef struct qat_wrapper_context {
+     int magic;
     dlsym_qzCompress compress;
     dlsym_qzDecompress decompress;
     dlsym_qzGetDefaults getDefaults;
@@ -197,6 +200,9 @@ Java_com_intel_qat_jni_QatCodecJNI_compress(
     }
 
     out = (uint8_t*)(*env)->GetDirectBufferAddress(env, destBuffer);
+
+
+
     if (out == NULL)
     {
         THROW(env, "java/lang/OutOfMemoryError", "Can't get compressor output buffer");
@@ -208,6 +214,18 @@ Java_com_intel_qat_jni_QatCodecJNI_compress(
     uncompressed_size = srcLen;
     compressed_size = destLen;
     int ret = qat_wrapper_context->compress(&g_qzSession, in, &uncompressed_size, out, &compressed_size, 1);
+
+   //add 20190918 zj
+   FILE *p;
+   p = fopen("/home/sparkuser/Downloads/destBufferQatCodecJNI_1009_1.txt","wb+");
+   //printf("the file is open %p",p);
+   //fprintf(p,"compressed size is %d\n",compressed_size);
+   fwrite(out,compressed_size,1,p);
+   //fprintf(p,"%d",out);
+   fclose(p);
+
+
+
     if (ret == QZ_OK)
     {
     }
@@ -282,6 +300,17 @@ Java_com_intel_qat_jni_QatCodecJNI_decompress(
         sprintf(temp, "Could not decompress data. Return error code %d", ret);
         THROW(env, "java/lang/InternalError", temp);
     }
+
+
+   //add 20191009 zj
+   FILE *p;
+   p = fopen("/home/sparkuser/Downloads/compressedDestBufferQatCodecJNI_1009_1.txt","wb+");
+   //printf("the file is open %p",p);
+   //fprintf(p,"compressed size is %d\n",compressed_size);
+   fwrite(in,srcLen,1,p);
+   //fprintf(p,"%d",out);
+   fclose(p);
+
 
     return uncompressed_size;
 }

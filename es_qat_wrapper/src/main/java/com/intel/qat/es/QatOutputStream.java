@@ -19,196 +19,196 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class QatOutputStream extends FilterOutputStream {
-    private static final Logger LOG =
-            LoggerFactory.getLogger(QatOutputStream.class);
+private static final Logger LOG =
+      LoggerFactory.getLogger(QatOutputStream.class);
 
-    private long context;
-    private int level;
-    private int compressedSize;
-    private int uncompressedSize;
-    private BufferAllocator compressedBufferAllocator;
-    private BufferAllocator uncompressedBufferAllocator;
-    private ByteBuffer compressedBuffer;
-    private ByteBuffer uncompressedBuffer;
-    private boolean closed;
-    private int uncompressedBufferPosition;
-    private byte[] tempBuffer;
-    private final BufferAllocator tempBufferAllocator;
-    static final int HEADER_LENGTH = 4;         // decompressed length
-
-
-    protected byte[] buf;
-    /**
-     * Create a new {@link OutputStream} with configurable codec, level and block size. Large
-     * blocks require more memory at compression and decompression time but
-     * should improve the compression ratio.
-     *
-     * @param out         the {@link OutputStream} to feed
-     * @param level       the compression codec level
-     * @param size   the maximum number of bytes to try to compress at once,
-     *                    must be >= 32 K
-     */
-    public QatOutputStream(OutputStream out,
-                           int level, int size, boolean useNativeBuffer) {
-        super(out);
-
-        if(out == null){
-            throw new NullPointerException();
-        }else if (size <= 0){
-            throw new IllegalArgumentException("buffer size <= 0");
-        }
+  private long context;
+  private int level;
+  private int compressedSize;
+  private int uncompressedSize;
+  private BufferAllocator compressedBufferAllocator;
+  private BufferAllocator uncompressedBufferAllocator;
+  private ByteBuffer compressedBuffer;
+  private ByteBuffer uncompressedBuffer;
+  private boolean closed;
+  private int uncompressedBufferPosition;
+  private byte[] tempBuffer;
+  private final BufferAllocator tempBufferAllocator;
+  static final int HEADER_LENGTH = 4;         // decompressed length
 
 
-        this.level = level;
-        this.uncompressedSize = size ;  //maybe  size * 3 /2
-        this.compressedSize = size * 3 / 2; //  maybe  size ;
-        this.uncompressedBufferAllocator = CachedBufferAllocator.
-                getBufferAllocatorFactory().getBufferAllocator(uncompressedSize);
-        this.compressedBufferAllocator = CachedBufferAllocator.
-                getBufferAllocatorFactory().getBufferAllocator(compressedSize);
-        this.uncompressedBuffer = uncompressedBufferAllocator.
-                allocateDirectByteBuffer(useNativeBuffer, uncompressedSize, 64);
-        this.compressedBuffer = compressedBufferAllocator.
-                allocateDirectByteBuffer(useNativeBuffer, compressedSize, 64);
-        if(uncompressedBuffer != null) {
-            uncompressedBuffer.clear();
-        }
-
-        if(compressedBuffer != null) {
-            compressedBuffer.clear();
-        }
-
-        uncompressedBufferPosition = 0;
-        closed = false;
-
-        tempBufferAllocator = CachedBufferAllocator.getBufferAllocatorFactory().
-                getBufferAllocator(compressedSize);
-        tempBuffer = tempBufferAllocator.allocateByteArray(compressedSize);
-
-        context = QatCodecJNI.createCompressContext(level);
-        LOG.debug("Create Qat OutputStream with level " + level);
-
-        this.buf = new byte[size];
-    }
-
-    /** Creates a new output stream with the specified compressor, level and a default buffer size.
-     *
-     */
-
-    public QatOutputStream(OutputStream out, int level, boolean useNativeBuffer){
-        this(out,level,512,useNativeBuffer);
+  protected byte[] buf;
+  /**
+   * Create a new {@link OutputStream} with configurable codec, level and block size. Large
+   * blocks require more memory at compression and decompression time but
+   * should improve the compression ratio.
+   *
+   * @param out         the {@link OutputStream} to feed
+   * @param level       the compression codec level
+   * @param size   the maximum number of bytes to try to compress at once,
+   *                    must be >= 32 K
+   */
+  public QatOutputStream(OutputStream out,
+                         int level, int size, boolean useNativeBuffer) {
+    super(out);
+    
+    if(out == null){
+        throw new NullPointerException();
+    }else if (size <= 0){
+        throw new IllegalArgumentException("buffer size <= 0");
     }
 
 
-    /**
-     * Creates a new output stream with the specified compressor and
-     * a default buffer size and level.
-     * */
-
-    public QatOutputStream(OutputStream out,boolean useNativeBuffer){
-        this(out,3,512,useNativeBuffer);
+    this.level = level;
+    this.uncompressedSize = size ;  //maybe  size * 3 /2
+    this.compressedSize = size * 3 / 2; //  maybe  size ;
+    this.uncompressedBufferAllocator = CachedBufferAllocator.
+            getBufferAllocatorFactory().getBufferAllocator(uncompressedSize);
+    this.compressedBufferAllocator = CachedBufferAllocator.
+            getBufferAllocatorFactory().getBufferAllocator(compressedSize);
+    this.uncompressedBuffer = uncompressedBufferAllocator.
+            allocateDirectByteBuffer(useNativeBuffer, uncompressedSize, 64);
+    this.compressedBuffer = compressedBufferAllocator.
+            allocateDirectByteBuffer(useNativeBuffer, compressedSize, 64);
+    if(uncompressedBuffer != null) {
+      uncompressedBuffer.clear();
     }
 
-
-    private void checkStream(){
-        if(context == 0){
-            throw new NullPointerException();
-        }
-        if(closed){
-            throw new IllegalStateException("The output stream has been closed");
-        }
+    if(compressedBuffer != null) {
+      compressedBuffer.clear();
     }
 
-    /**
-     * Writes a byte to the compressed output stream. This method will
-     * block until the byte can be written.
-     * @param b the byte to be written
-     * @exception IOException if an I/O error has occurred
-     */
+    uncompressedBufferPosition = 0;
+    closed = false;
 
-    public void write(int b) throws IOException {
-        byte buf[] = new byte[1];
-        buf[0] = (byte) (b & 0xff);
-        write(buf,0,1);
-    }
+    tempBufferAllocator = CachedBufferAllocator.getBufferAllocatorFactory().
+            getBufferAllocator(compressedSize);
+    tempBuffer = tempBufferAllocator.allocateByteArray(compressedSize);
 
+    context = QatCodecJNI.createCompressContext(level);
+    LOG.debug("Create Qat OutputStream with level " + level);
 
+    this.buf = new byte[size];
+  }
 
+ /** Creates a new output stream with the specified compressor, level and a default buffer size.
+ *
+ */
 
-    /**
-     * Writes an array of bytes to the compressed output stream. This
-     * method will block until all the bytes are written.
-     * @param b the data to be written
-     * @param off the start offset of the data
-     * @param len the length of the data
-     * @exception IOException if an I/O error has occurred
-     */
-    public void write(byte[] b, int off, int len) throws IOException{
-        checkStream();
-
-        if(b == null){
-            throw new NullPointerException();
-        }
-
-        if(len < 0 || off < 0 || len > b.length - off)
-        {
-            throw new ArrayIndexOutOfBoundsException("The output stream need length " + len + " from offset " + off + " in buffer of size " + b.length);
-        }
-
-        while(uncompressedBufferPosition + len > uncompressedSize){
-            int left  = uncompressedSize - uncompressedBufferPosition;
-            uncompressedBuffer.put(b, off, left);
-            uncompressedBufferPosition = uncompressedSize;
-
-            compressedBufferData();
-
-            off += left;
-            len -= left;
+ public QatOutputStream(OutputStream out, int level, boolean useNativeBuffer){
+     this(out,level,512,useNativeBuffer);
+ }
 
 
-        }
+/**
+ * Creates a new output stream with the specified compressor and
+ * a default buffer size and level.
+ * */
 
-        uncompressedBuffer.put(b, off, len);
-        uncompressedBufferPosition += len;
-    }
+ public QatOutputStream(OutputStream out,boolean useNativeBuffer){
+     this(out,3,512,useNativeBuffer);
+ }
 
 
-    private void compressedBufferData() throws IOException{
-        if(uncompressedBufferPosition == 0){
-            return ;
-        }
-        int compressedLen = QatCodecJNI.compress(context,uncompressedBuffer,0,uncompressedBufferPosition,compressedBuffer,0,compressedSize);
+ private void checkStream(){
+     if(context == 0){
+         throw new NullPointerException();
+     }
+     if(closed){
+         throw new IllegalStateException("The output stream has been closed");
+     }
+ }
 
-        WriteIntLE(compressedLen, tempBuffer, 0);
+  /**
+   * Writes a byte to the compressed output stream. This method will
+   * block until the byte can be written.
+   * @param b the byte to be written
+   * @exception IOException if an I/O error has occurred
+   */
 
-        compressedBuffer.position(0);
-        compressedBuffer.limit(compressedLen);
+  public void write(int b) throws IOException {
+     byte buf[] = new byte[1];
+     buf[0] = (byte) (b & 0xff);
+     write(buf,0,1);
+  }
 
-        int totalWrite = 0;
 
-        int off  = 4;
 
-        while(totalWrite < compressedLen){
-            int byteToWrite = Math.min((compressedLen - totalWrite), (tempBuffer.length - off));
-            compressedBuffer.get(tempBuffer, off, byteToWrite);
-            out.write(tempBuffer, 0, byteToWrite + off);
-            totalWrite += byteToWrite;
-            off =  0;
-        }
 
-        uncompressedBuffer.clear();
-        compressedBuffer.clear();
-        uncompressedBufferPosition = 0;
+  /**
+   * Writes an array of bytes to the compressed output stream. This
+   * method will block until all the bytes are written.
+   * @param b the data to be written
+   * @param off the start offset of the data
+   * @param len the length of the data
+   * @exception IOException if an I/O error has occurred
+   */
+   public void write(byte[] b, int off, int len) throws IOException{
+      checkStream();
 
-    }
+      if(b == null){
+          throw new NullPointerException();
+      }
 
-    public static void WriteIntLE(int i, byte[] buf, int off){
+      if(len < 0 || off < 0 || len > b.length - off)
+      {
+          throw new ArrayIndexOutOfBoundsException("The output stream need length " + len + " from offset " + off + " in buffer of size " + b.length);
+      }
+
+      while(uncompressedBufferPosition + len > uncompressedSize){
+           int left  = uncompressedSize - uncompressedBufferPosition;
+           uncompressedBuffer.put(b, off, left);
+           uncompressedBufferPosition = uncompressedSize;
+
+           compressedBufferData();
+
+           off += left;
+           len -= left;
+
+
+      }
+
+      uncompressedBuffer.put(b, off, len);
+      uncompressedBufferPosition += len;
+   }
+
+
+   private void compressedBufferData() throws IOException{
+       if(uncompressedBufferPosition == 0){
+           return ;
+       }
+       int compressedLen = QatCodecJNI.compress(context,uncompressedBuffer,0,uncompressedBufferPosition,compressedBuffer,0,compressedSize);
+
+       WriteIntLE(compressedLen, tempBuffer, 0);
+
+       compressedBuffer.position(0);
+       compressedBuffer.limit(compressedLen);
+
+       int totalWrite = 0;
+
+       int off  = 4;
+
+       while(totalWrite < compressedLen){
+           int byteToWrite = Math.min((compressedLen - totalWrite), (tempBuffer.length - off));
+           compressedBuffer.get(tempBuffer, off, byteToWrite);
+           out.write(tempBuffer, 0, byteToWrite + off);
+           totalWrite += byteToWrite;
+           off =  0;
+       }
+
+       uncompressedBuffer.clear();
+       compressedBuffer.clear();
+       uncompressedBufferPosition = 0;
+
+   }
+
+   public static void WriteIntLE(int i, byte[] buf, int off){
         buf[off] = (byte)i;
         buf[off + 1] = (byte)(i >>> 8);
         buf[off + 2] = (byte)(i >>> 16);
         buf[off + 3] = (byte) (i >>> 24);
 
-    }
+   }
 
     /**
      * Finishes writing compressed data to the output stream without closing
@@ -216,11 +216,11 @@ public class QatOutputStream extends FilterOutputStream {
      * in succession to the same output stream.
      * @exception IOException if an I/O error has occurred
      */
-    public void finish() throws IOException{
-        checkStream();
-        compressedBufferData();
-        out.flush();
-    }
+   public void finish() throws IOException{
+       checkStream();
+       compressedBufferData();
+       out.flush();
+   }
 
 
     /**
@@ -229,24 +229,24 @@ public class QatOutputStream extends FilterOutputStream {
      * @exception IOException if an I/O error has occurred
      */
     public void close() throws IOException {
-        if(closed){
-            return;
-        }
-        try{
-            finish();
-            out.close();
-        }
-        finally {
-            closed = true;
-            uncompressedBufferAllocator.releaseDirectByt.eBuffer(uncompressedBuffer);
-            compressedBufferAllocator.releaseDirectByteBuffer(compressedBuffer);
-            tempBufferAllocator.releaseByteArray(tempBuffer);
-            tempBuffer = null;
-            out = null;
-            QatCodecJNI.destroyContext(context);
-            context = 0;
+      if(closed){
+          return;
+      }
+      try{
+          finish();
+          out.close();
+      }
+      finally {
+          closed = true;
+          uncompressedBufferAllocator.releaseDirectByteBuffer(uncompressedBuffer);
+          compressedBufferAllocator.releaseDirectByteBuffer(compressedBuffer);
+          tempBufferAllocator.releaseByteArray(tempBuffer);
+          tempBuffer = null;
+          out = null;
+          QatCodecJNI.destroyContext(context);
+          context = 0;
 
-        }
+      }
         LOG.debug("Close Qat OutputStream with level " + level);
     }
 }
