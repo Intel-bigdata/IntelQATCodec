@@ -19,25 +19,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class QatOutputStream extends FilterOutputStream {
-private static final Logger LOG =
+    private static final Logger LOG =
       LoggerFactory.getLogger(QatOutputStream.class);
 
-  private long context;
-  private int level;
-  private int compressedSize;
-  private int uncompressedSize;
-  private BufferAllocator compressedBufferAllocator;
-  private BufferAllocator uncompressedBufferAllocator;
-  private ByteBuffer compressedBuffer;
-  private ByteBuffer uncompressedBuffer;
-  private boolean closed;
-  private int uncompressedBufferPosition;
-  private byte[] tempBuffer;
-  private final BufferAllocator tempBufferAllocator;
-  static final int HEADER_LENGTH = 4;         // decompressed length
+    private long context;
+    private int level;
+    private int compressedSize;
+    private int uncompressedSize;
+    private BufferAllocator compressedBufferAllocator;
+    private BufferAllocator uncompressedBufferAllocator;
+    private ByteBuffer compressedBuffer;
+    private ByteBuffer uncompressedBuffer;
+    private boolean closed;
+    private final boolean syncFlush;
+    private int uncompressedBufferPosition;
+    private byte[] tempBuffer;
+    private final BufferAllocator tempBufferAllocator;
+    static final int HEADER_LENGTH = 4;         // decompressed length
 
 
-  protected byte[] buf;
+   protected byte[] buf;
   /**
    * Create a new {@link OutputStream} with configurable codec, level and block size. Large
    * blocks require more memory at compression and decompression time but
@@ -47,6 +48,9 @@ private static final Logger LOG =
    * @param level       the compression codec level
    * @param size   the maximum number of bytes to try to compress at once,
    *                    must be >= 32 K
+   * @param useNativeBuffer  to identify if use nativeBuffer or not
+   *
+   * @throws IllegalArgumentException if {@code size <= 0}
    */
   public QatOutputStream(OutputStream out,
                          int level, int size, boolean useNativeBuffer) {
@@ -89,25 +93,76 @@ private static final Logger LOG =
     LOG.debug("Create Qat OutputStream with level " + level);
 
     this.buf = new byte[size];
+    this.syncFlush = false;
   }
 
- /** Creates a new output stream with the specified compressor, level and a default buffer size.
+ /** Creates a new output stream with the specified level and a default buffer.
+  *
+  * @param out the output stream
+  * @param level the compression codec level
+  * @param size  the maximum number of bytes to try to compress at once,
+  *                 must be >= 32 K
+  * @exception IllegalArgumentException if {@code size <= 0}
+ */
+
+  public QatOutputStream(OutputStream out, int level, int size){
+     this(out,level,size,false);
+ }
+
+
+/** Creates a new output stream with the specified level and a default buffer size.
  *
+ * @param out the output stream
+ * @param level the compression codec level
+ * @param useNativeBuffer  to identify if use nativeBuffer or not
+ * @exception IllegalArgumentException if {@code size <= 0}
  */
 
  public QatOutputStream(OutputStream out, int level, boolean useNativeBuffer){
-     this(out,level,512,useNativeBuffer);
- }
-
+    this(out,level,512,useNativeBuffer);
+}
 
 /**
  * Creates a new output stream with the specified compressor and
  * a default buffer size and level.
+ * <p>The new output stream instance is created as if by invoking
+ *    the 3-argument constructor DeflaterOutputStream(out, def, false).
+ *
+ *    @param out the output stream
+ *   @param useNativeBuffer to identify the buffer
  * */
 
  public QatOutputStream(OutputStream out,boolean useNativeBuffer){
-     this(out,3,512,useNativeBuffer);
+     this(out,3,useNativeBuffer);
  }
+
+
+    /**
+     * Creates a new output stream with the specified compressor and
+     * a default buffer size and level.
+     * <p>The new output stream instance is created as if by invoking
+     *    the 3-argument constructor DeflaterOutputStream(out, def, false).
+     *
+     * @param out the output stream
+     * @param size the maximum number of bytes to try to compress at once,
+     *                  must be >= 32 K
+     * */
+
+    public QatOutputStream(OutputStream out,int size){
+        this(out,3,size);
+    }
+
+    /**
+     * Creates a new output stream with a default compressor and buffer size.
+     *
+     * <p>The new output stream instance is created as if by invoking
+     * the 2-argument constructor QatOutputStream(out, false).
+     *
+     * @param out the output stream
+     */
+    public QatOutputStream(OutputStream out) {
+        this(out, false);
+    }
 
 
  private void checkStream(){
@@ -202,7 +257,7 @@ private static final Logger LOG =
 
    }
 
-   public static void WriteIntLE(int i, byte[] buf, int off){
+   private static void WriteIntLE(int i, byte[] buf, int off){
         buf[off] = (byte)i;
         buf[off + 1] = (byte)(i >>> 8);
         buf[off + 2] = (byte)(i >>> 16);
@@ -248,5 +303,12 @@ private static final Logger LOG =
 
       }
         LOG.debug("Close Qat OutputStream with level " + level);
+    }
+
+    public void flush() throws IOException {
+        checkStream();
+        compressedBufferData();
+        out.flush();
+
     }
 }

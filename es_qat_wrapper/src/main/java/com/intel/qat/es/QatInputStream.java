@@ -173,7 +173,6 @@ public class QatInputStream extends FilterInputStream {
     }
 
 
-
     /**
      * Reads uncompressed data into an array of bytes. If <code>len</code> is not
      * zero, the method will block until some input can be decompressed; otherwise,
@@ -339,7 +338,7 @@ public class QatInputStream extends FilterInputStream {
      * @see     java.io.InputStream#reset()
      */
 
-    public boolean markSupport(){
+    public boolean markSupported(){
         return false;
     }
 
