@@ -29,13 +29,13 @@ import java.io.InputStream;
 public class NativeCodeLoader {
 
 
-  private static final Logger LOG = LoggerFactory.getLogger(NativeCodeLoader.class);
+ // private static final Logger LOG = LoggerFactory.getLogger(NativeCodeLoader.class);
   private static final String LIBRARY_NAME = "QatCodecEs";
   private static boolean nativeCodeLoaded = false;
 
   static {
     // Try to load native library
-    LOG.info("Trying to load the native library...");
+   // LOG.info("Trying to load the native library...");
     load();
   }
 
@@ -93,8 +93,8 @@ public class NativeCodeLoader {
     try {
       System.loadLibrary(LIBRARY_NAME);
       nativeCodeLoaded = true;
-      LOG.info("Loaded native lib" + LIBRARY_NAME + "." + os().libExtension
-          + " from the system library path");
+     // LOG.info("Loaded native lib" + LIBRARY_NAME + "." + os().libExtension
+     //     + " from the system library path");
       return;
     } catch(UnsatisfiedLinkError ex){
       // Doesn't exist, so proceed to loading bundled library.
@@ -130,13 +130,13 @@ public class NativeCodeLoader {
         try {
           System.load(tempLib.getAbsolutePath());
         } catch (UnsatisfiedLinkError e) {
-          LOG.info("Failed to load native lib" + LIBRARY_NAME + "." + os().libExtension
-              + " from the embedded jar package");
+        //  LOG.info("Failed to load native lib" + LIBRARY_NAME + "." + os().libExtension
+         //     + " from the embedded jar package");
           throw e;
         }
         nativeCodeLoaded = true;
-        LOG.info("Loaded native lib" + LIBRARY_NAME + "." + os().libExtension
-            + " from the embedded jar package");
+       // LOG.info("Loaded native lib" + LIBRARY_NAME + "." + os().libExtension
+         //   + " from the embedded jar package");
       } finally {
         try {
           if (out != null) {
@@ -155,7 +155,7 @@ public class NativeCodeLoader {
         }
       }
     } catch (IOException e) {
-      LOG.error("Failed to load native lib" + LIBRARY_NAME + "." + os().libExtension);
+     // LOG.error("Failed to load native lib" + LIBRARY_NAME + "." + os().libExtension);
       throw new ExceptionInInitializerError(new Throwable("Cannot unpack " + LIBRARY_NAME, e));
     }
   }

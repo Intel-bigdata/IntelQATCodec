@@ -33,7 +33,7 @@ import java.util.Map;
  */
 public class CachedBufferAllocator implements BufferAllocator 
 {
-    private static final Logger LOG = LoggerFactory.getLogger(CachedBufferAllocator.class);
+   // private static final Logger LOG = LoggerFactory.getLogger(CachedBufferAllocator.class);
 
     private static BufferAllocatorFactory factory = new BufferAllocatorFactory()
     {
@@ -94,7 +94,7 @@ public class CachedBufferAllocator implements BufferAllocator
                     try {
                         return (ByteBuffer) QatCodecJNI.allocNativeBuffer(size, align);
                     } catch (Throwable t) {
-                        LOG.error("Native buffer allocation is failed and fall back to direct allocation.");
+                       // LOG.error("Native buffer allocation is failed and fall back to direct allocation.");
                         return ByteBuffer.allocateDirect(size);
                     }
                 }

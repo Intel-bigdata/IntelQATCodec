@@ -19,8 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class QatOutputStream extends FilterOutputStream {
-    private static final Logger LOG =
-      LoggerFactory.getLogger(QatOutputStream.class);
+   // private static final Logger LOG =LoggerFactory.getLogger(QatOutputStream.class);
 
     private long context;
     private int level;
@@ -90,7 +89,7 @@ public class QatOutputStream extends FilterOutputStream {
     tempBuffer = tempBufferAllocator.allocateByteArray(compressedSize);
 
     context = QatCodecJNI.createCompressContext(level);
-    LOG.debug("Create Qat OutputStream with level " + level);
+    //LOG.debug("Create Qat OutputStream with level " + level);
 
     this.buf = new byte[size];
     this.syncFlush = false;
@@ -302,7 +301,7 @@ public class QatOutputStream extends FilterOutputStream {
           context = 0;
 
       }
-        LOG.debug("Close Qat OutputStream with level " + level);
+        //LOG.debug("Close Qat OutputStream with level " + level);
     }
 
     public void flush() throws IOException {
