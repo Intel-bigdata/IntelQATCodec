@@ -17,6 +17,7 @@ SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) CarbondataQatJNI.c
 # Include files.
 INCLUDES  := $(addprefix -I,$(MODULES)) \
 	-I$(JAVA_HOME)/include \
+        -I $(QATZIPSRC)/include \
 	-I$(JAVA_HOME)/include/linux \
 	-I$(QATZIP_SRC)/include \
 	-I/opt/intel/QATzip/include/ \
