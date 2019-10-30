@@ -26,16 +26,22 @@ import java.util.Properties;
  * Kafka QAT configurations loading from kafka-qat.conf present in the classpath
  * with default values. Below are the configurations can be customized,
  *
- * kafka.qat.compression-level= kafka.qat.compression.compression-buffer.size
+ * kafka.qat.compression-level
+ * kafka.qat.compression.compression-buffer.size
  * kafka.qat.compression.decompression-buffer.size
  * kafka.qat.compression.buffer-align.size
  * kafka.qat.compression.use-native-buffer
+ * kafka.qat.compression.native-bb.useQzMalloc
+ * kafka.qat.compression.native-bb.useNuma
+ * kafka.qat.compression.native-bb.useForcePinned
  *
  * kafka.qat.decompression.compression-buffer.size
  * kafka.qat.decompression.compression-buffer.size
  * kafka.qat.decompression.buffer-align.size
  * kafka.qat.decompression.use-native-buffer
- *
+ * kafka.qat.decompression.native-bb.useQzMalloc
+ * kafka.qat.decompression.native-bb.useNuma
+ * kafka.qat.decompression.native-bb.useForcePinned
  */
 public final class KafkaQatConfig {
 
@@ -47,10 +53,17 @@ public final class KafkaQatConfig {
   private int compressDecompressionBufferSize = DEFAULT_COMPRESS_DECOMPRESSION_BUFFER_SIZE_VALUE;
   private int compressAlignSize = DEFAULT_COMPRESS_ALIGN_SIZE_VALUE;
   private boolean compressUseNativeBuffer = DEFAULT_COMPRESS_USE_NATIVE_BUFFER_VALUE;
+  private boolean compressNativeBBUseQzMalloc = DEFAULT_COMPRESS_NATIVE_BB_USE_QZMALLOC_VALUE;
+  private boolean compressNativeBBUseNuma = DEFAULT_COMPRESS_NATIVE_BB_USE_NUMA_VALUE;
+  private boolean compressNativeBBUseForcePinned = DEFAULT_COMPRESS_NATIVE_BB_USE_FORCEPINNED_VALUE;
+
   private int decompressCompressionBufferSize = DEFAULT_DECOMPRESS_COMPRESSION_BUFFER_SIZE_VALUE;
   private int decompressDecompressionBufferSize = DEFAULT_DECOMPRESS_DECOMPRESSION_BUFFER_SIZE_VALUE;
   private int decompressAlignSize = DEFAULT_DECOMPRESS_ALIGN_SIZE_VALUE;
   private boolean decompressUseNativeBuffer = DEFAULT_DECOMPRESS_USE_NATIVE_BUFFER_VALUE;
+  private boolean decompressNativeBBUseQzMalloc = DEFAULT_DECOMPRESS_NATIVE_BB_USE_QZMALLOC_VALUE;
+  private boolean decompressNativeBBUseNuma = DEFAULT_DECOMPRESS_NATIVE_BB_USE_NUMA_VALUE;
+  private boolean decompressNativeBBUseForcePinned = DEFAULT_DECOMPRESS_NATIVE_BB_USE_FORCEPINNED_VALUE;
 
   private static final String COMPRESSION_LEVEL_KEY = "kafka.qat.compression-level";
   private static final int DEFAULT_COMPRESSION_LEVEL_VALUE = 1;
@@ -67,6 +80,15 @@ public final class KafkaQatConfig {
   private static final String COMPRESS_USE_NATIVE_BUFFER_KEY = "kafka.qat.compression.use-native-buffer";
   private static final boolean DEFAULT_COMPRESS_USE_NATIVE_BUFFER_VALUE = true;
 
+  private static final String COMPRESS_NATIVE_BB_USE_QZMALLOC_KEY = "kafka.qat.compression.native-bb.useQzMalloc";
+  private static final boolean DEFAULT_COMPRESS_NATIVE_BB_USE_QZMALLOC_VALUE = true;
+
+  private static final String COMPRESS_NATIVE_BB_USE_NUMA_KEY = "kafka.qat.compression.native-bb.useNuma";
+  private static final boolean DEFAULT_COMPRESS_NATIVE_BB_USE_NUMA_VALUE = false;
+
+  private static final String COMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY = "kafka.qat.compression.native-bb.useForcePinned";
+  private static final boolean DEFAULT_COMPRESS_NATIVE_BB_USE_FORCEPINNED_VALUE = true;
+
   private static final String DECOMPRESS_COMPRESSION_BUFFER_SIZE_KEY = "kafka.qat.decompression.compression-buffer.size";
   private static final int DEFAULT_DECOMPRESS_COMPRESSION_BUFFER_SIZE_VALUE = 32
       * 1024;
@@ -78,6 +100,15 @@ public final class KafkaQatConfig {
 
   private static final String DECOMPRESS_USE_NATIVE_BUFFER_KEY = "kafka.qat.decompression.use-native-buffer";
   private static final boolean DEFAULT_DECOMPRESS_USE_NATIVE_BUFFER_VALUE = true;
+
+  private static final String DECOMPRESS_NATIVE_BB_USE_QZMALLOC_KEY = "kafka.qat.decompression.native-bb.useQzMalloc";
+  private static final boolean DEFAULT_DECOMPRESS_NATIVE_BB_USE_QZMALLOC_VALUE = true;
+
+  private static final String DECOMPRESS_NATIVE_BB_USE_NUMA_KEY = "kafka.qat.decompression.native-bb.useNuma";
+  private static final boolean DEFAULT_DECOMPRESS_NATIVE_BB_USE_NUMA_VALUE = false;
+
+  private static final String DECOMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY = "kafka.qat.decompression.native-bb.useForcePinned";
+  private static final boolean DEFAULT_DECOMPRESS_NATIVE_BB_USE_FORCEPINNED_VALUE = true;
 
   static {
     instance = new KafkaQatConfig();
@@ -127,6 +158,21 @@ public final class KafkaQatConfig {
             prop.get(COMPRESS_USE_NATIVE_BUFFER_KEY).toString().trim());
       }
 
+      if (prop.get(COMPRESS_NATIVE_BB_USE_QZMALLOC_KEY) != null) {
+        compressNativeBBUseQzMalloc = Boolean.parseBoolean(
+            prop.get(COMPRESS_NATIVE_BB_USE_QZMALLOC_KEY).toString().trim());
+      }
+
+      if (prop.get(COMPRESS_NATIVE_BB_USE_NUMA_KEY) != null) {
+        compressNativeBBUseNuma = Boolean.parseBoolean(
+            prop.get(COMPRESS_NATIVE_BB_USE_NUMA_KEY).toString().trim());
+      }
+
+      if (prop.get(COMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY) != null) {
+        compressNativeBBUseForcePinned = Boolean.parseBoolean(
+            prop.get(COMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY).toString().trim());
+      }
+
       if (prop.get(DECOMPRESS_COMPRESSION_BUFFER_SIZE_KEY) != null) {
         decompressCompressionBufferSize = Integer.parseInt(
             prop.get(DECOMPRESS_COMPRESSION_BUFFER_SIZE_KEY).toString().trim());
@@ -145,6 +191,21 @@ public final class KafkaQatConfig {
       if (prop.get(DECOMPRESS_USE_NATIVE_BUFFER_KEY) != null) {
         decompressUseNativeBuffer = Boolean.parseBoolean(
             prop.get(DECOMPRESS_USE_NATIVE_BUFFER_KEY).toString().trim());
+      }
+
+      if (prop.get(DECOMPRESS_NATIVE_BB_USE_QZMALLOC_KEY) != null) {
+        decompressNativeBBUseQzMalloc = Boolean.parseBoolean(
+            prop.get(DECOMPRESS_NATIVE_BB_USE_QZMALLOC_KEY).toString().trim());
+      }
+
+      if (prop.get(DECOMPRESS_NATIVE_BB_USE_NUMA_KEY) != null) {
+        decompressNativeBBUseNuma = Boolean.parseBoolean(
+            prop.get(DECOMPRESS_NATIVE_BB_USE_NUMA_KEY).toString().trim());
+      }
+
+      if (prop.get(DECOMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY) != null) {
+        decompressNativeBBUseForcePinned = Boolean.parseBoolean(prop
+            .get(DECOMPRESS_NATIVE_BB_USE_FORCEPINNED_KEY).toString().trim());
       }
     }
   }
@@ -173,6 +234,14 @@ public final class KafkaQatConfig {
     return compressUseNativeBuffer;
   }
 
+  public boolean isCompressNativeBBUseNuma() {
+    return compressNativeBBUseNuma;
+  }
+
+  public boolean isCompressNativeBBUseForcePinned() {
+    return compressNativeBBUseForcePinned;
+  }
+
   public int getDecompressCompressionBufferSize() {
     return decompressCompressionBufferSize;
   }
@@ -187,5 +256,21 @@ public final class KafkaQatConfig {
 
   public boolean isDecompressUseNativeBuffer() {
     return decompressUseNativeBuffer;
+  }
+
+  public boolean isCompressNativeBBUseQzMalloc() {
+    return compressNativeBBUseQzMalloc;
+  }
+
+  public boolean isDecompressNativeBBUseQzMalloc() {
+    return decompressNativeBBUseQzMalloc;
+  }
+
+  public boolean isDecompressNativeBBUseNuma() {
+    return decompressNativeBBUseNuma;
+  }
+
+  public boolean isDecompressNativeBBUseForcePinned() {
+    return decompressNativeBBUseForcePinned;
   }
 }

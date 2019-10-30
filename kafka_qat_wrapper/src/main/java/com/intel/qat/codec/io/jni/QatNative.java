@@ -68,6 +68,20 @@ public final class QatNative {
   public static native Object allocNativeBuffer(int capacity, int align);
 
   /**
+   * Allocates the native byte buffer using qzip qzMalloc.
+   *
+   * @param capacity
+   *          - Capacity of the ByteBuffer
+   * @param numa
+   *          - Allocate memory from NUMA node for qzMalloc
+   * @param forcePinned
+   *          - Allocate continuous memory for qzMalloc
+   * @return - ByteBuffer created using qzMalloc
+   */
+  public static native Object qzMalloc(long capacity, boolean numa,
+      boolean forcePinned);
+
+  /**
    * Creates the compress context.
    *
    * @param level

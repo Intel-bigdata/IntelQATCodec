@@ -31,9 +31,14 @@ public interface BufferAllocator {
    * @param size - buffer size
    * @param align - align for buffer
    * @param useNative - whether use native or not
+   * @param nativeBBUseQzMalloc - whether use qzMalloc
+   * @param nativeBBUseNuma - whether use numa
+   * @param nativeBBUseForcePinned - whether use forcePinned
    * @return - allocated byte buffer
    */
-  ByteBuffer allocate(int size, int align, boolean useNative);
+  ByteBuffer allocate(int size, int align, boolean useNative,
+      boolean nativeBBUseQzMalloc, boolean nativeBBUseNuma,
+      boolean nativeBBUseForcePinned);
 
   /**
    * Releases the ByteBuffer.

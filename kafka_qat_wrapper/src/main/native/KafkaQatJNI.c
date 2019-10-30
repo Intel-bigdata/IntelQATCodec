@@ -138,6 +138,18 @@ Java_com_intel_qat_codec_io_jni_QatNative_allocNativeBuffer(
 
 /*
  * Class:     com_intel_qat_codec_io_jni_QatNative
+ * Method:    qzMalloc
+ * Signature: (JZZ)Ljava/lang/Object;
+ */
+JNIEXPORT jobject JNICALL
+ Java_com_intel_qat_codec_io_jni_QatNative_qzMalloc(JNIEnv *env,
+ jobject obj, jlong capacity, jboolean numa, jboolean force_pinned)
+{
+    return (*env)->NewDirectByteBuffer(env, qzMalloc(capacity, numa, force_pinned), capacity);
+}
+
+/*
+ * Class:     com_intel_qat_codec_io_jni_QatNative
  * Method:    createCompressContext
  * Signature: (I)J
  */

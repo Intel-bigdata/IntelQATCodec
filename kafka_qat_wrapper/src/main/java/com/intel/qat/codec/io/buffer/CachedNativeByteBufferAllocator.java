@@ -53,10 +53,13 @@ public final class CachedNativeByteBufferAllocator implements BufferAllocator {
   }
 
   @Override
-  public ByteBuffer allocate(int size, int align, boolean useNative) {
+  public ByteBuffer allocate(int size, int align, boolean useNative,
+      boolean nativeBBUseQzMalloc, boolean nativeBBUseNuma,
+      boolean nativeBBUseForcePinned) {
     synchronized (this) {
       if (bufferQueue.isEmpty()) {
-        return getInstance(size, align, useNative);
+        return getInstance(size, align, useNative, nativeBBUseQzMalloc,
+            nativeBBUseNuma, nativeBBUseForcePinned);
       } else {
         return bufferQueue.pollFirst();
       }
@@ -70,11 +73,25 @@ public final class CachedNativeByteBufferAllocator implements BufferAllocator {
    * @param size
    * @param align
    * @param useNative
+   * @param nativeBBUseForcePinned
+   * @param nativeBBUseNuma
+   * @param nativeBBUseQzMalloc
    * @return
    */
-  private ByteBuffer getInstance(int size, int align, boolean useNative) {
+  private ByteBuffer getInstance(int size, int align, boolean useNative,
+      boolean nativeBBUseQzMalloc, boolean nativeBBUseNuma,
+      boolean nativeBBUseForcePinned) {
     if (useNative) {
       try {
+        if (nativeBBUseQzMalloc) {
+          try {
+            return (ByteBuffer) QatNative.qzMalloc(size, nativeBBUseNuma,
+                nativeBBUseForcePinned);
+          } catch (Throwable e) {
+            LOG.warn("Failed to create native byte buffer using qzMalloc,"
+                + " falling back to creating native byte buffer without qzMalloc.", e);
+          }
+        }
         return (ByteBuffer) QatNative.allocNativeBuffer(size, align);
       } catch (Throwable e) {
         LOG.warn("Failed to create native byte buffer, "

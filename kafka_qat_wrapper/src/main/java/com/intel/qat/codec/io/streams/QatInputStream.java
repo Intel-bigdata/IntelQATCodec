@@ -58,10 +58,25 @@ public class QatInputStream extends InputStream {
     this.uncompressedBlockSize = conf.getDecompressDecompressionBufferSize();
     this.compressedBlockSize = conf.getDecompressCompressionBufferSize();
 
+    boolean compressNativeBBUseQzMalloc = conf.isCompressNativeBBUseQzMalloc();
+    boolean compressNativeBBUseNuma = conf.isCompressNativeBBUseNuma();
+    boolean compressNativeBBUseForcePinned = conf
+        .isCompressNativeBBUseForcePinned();
+
+    boolean decompressNativeBBUseQzMalloc = conf
+        .isDecompressNativeBBUseQzMalloc();
+    boolean decompressNativeBBUseNuma = conf.isDecompressNativeBBUseNuma();
+    boolean decompressNativeBBUseForcePinned = conf
+        .isDecompressNativeBBUseForcePinned();
+
     this.uncompressedBuffer = allocator.allocate(uncompressedBlockSize,
-        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer());
+        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer(),
+        compressNativeBBUseQzMalloc, compressNativeBBUseNuma,
+        compressNativeBBUseForcePinned);
     this.compressedBuffer = allocator.allocate(compressedBlockSize,
-        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer());
+        conf.getDecompressAlignSize(), conf.isDecompressUseNativeBuffer(),
+        decompressNativeBBUseQzMalloc, decompressNativeBBUseNuma,
+        decompressNativeBBUseForcePinned);
 
     uncompressedBufferPosition = originalLen = 0;
     closed = false;
