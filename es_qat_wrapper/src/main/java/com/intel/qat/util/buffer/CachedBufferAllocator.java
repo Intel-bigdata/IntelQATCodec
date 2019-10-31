@@ -27,6 +27,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Cached buffer
@@ -34,6 +36,7 @@ import java.util.Map;
 public class CachedBufferAllocator implements BufferAllocator 
 {
    // private static final Logger LOG = LoggerFactory.getLogger(CachedBufferAllocator.class);
+   private final Logger LOG = LogManager.getLogger(CachedBufferAllocator.class);
 
     private static BufferAllocatorFactory factory = new BufferAllocatorFactory()
     {
@@ -94,7 +97,7 @@ public class CachedBufferAllocator implements BufferAllocator
                     try {
                         return (ByteBuffer) QatCodecJNI.allocNativeBuffer(size, align);
                     } catch (Throwable t) {
-                       // LOG.error("Native buffer allocation is failed and fall back to direct allocation.");
+                        LOG.error("Native buffer allocation is failed and fall back to direct allocation.");
                         return ByteBuffer.allocateDirect(size);
                     }
                 }
