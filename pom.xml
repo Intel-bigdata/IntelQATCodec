@@ -13,46 +13,46 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.intel.qat</groupId>
-  <artifactId>qat-parent</artifactId>
-  <version>1.0.0</version>
-  <packaging>pom</packaging>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
 
-  <name>QATCodec</name>
-  <description>QAT Codec for Apache Hadoop and Spark</description>
-  <url>https://github.com/intel-hadoop/IntelQATCodec</url>
+    <name>QATCodec</name>
+    <description>QAT Codec for Apache Hadoop and Spark</description>
+    <url>https://github.com/intel-hadoop/IntelQATCodec</url>
 
-  <repositories>
-    <repository>
-      <id>cdh.repo</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
-      <name>Cloudera Repositories</name>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
+    <repositories>
+        <repository>
+            <id>cdh.repo</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
+            <name>Cloudera Repositories</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
-  <licenses>
-    <license>
-      <name>Apache 2.0 License</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+    <licenses>
+        <license>
+            <name>Apache 2.0 License</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-  <modules>
-    <module>hadoop_qat_wrapper</module>
-    <module>spark_qat_wrapper</module>
-    <module>carbondata_qat_wrapper</module>
-      <module>common</module>
-    <module>es_qat_wrapper</module>
-  </modules>
+    <modules>
+        <module>hadoop_qat_wrapper</module>
+        <module>spark_qat_wrapper</module>
+        <module>carbondata_qat_wrapper</module>
+        <module>common</module>
+        <module>es_qat_wrapper</module>
+    </modules>
 
 </project>
 

@@ -149,63 +149,6 @@
 
     <build>
         <plugins>
-
-            <!--for solved access denied-->
-            <!--<plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <archive>
-                        <index>true</index>
-                        <manifestFile>${project.basedir}/MANIFEST.MF</manifestFile>
-                        <manifest>
-                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-                        </manifest>
-                    </archive>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attached</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jarsigner-plugin</artifactId>
-                <version>1.2</version>
-                <configuration>
-                    <keystore>src/main/resources/minimal-keystore.jks</keystore>
-                    <alias>minimal</alias>
-                    <storepass>abcd1234</storepass>
-                    <keypass>abcd1234</keypass>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>sign</id>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>verify</id>
-                        <goals>
-                            <goal>verify</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
--->
-
-
-
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -255,7 +198,7 @@
                             <tasks>
                                 <property name="native.src.dir" value="${basedir}/src/main/native"/>
                                 <exec dir="${native.src.dir}" executable="make" failonerror="true">
-                                    <env key="QATZIPSRC" value="${qatzip.src}" />
+                                    <env key="QATZIPSRC" value="${qatzip.src}"/>
                                 </exec>
                             </tasks>
                         </configuration>
@@ -269,7 +212,7 @@
                         <configuration>
                             <tasks>
                                 <exec dir="src/main/native" executable="make" failonerror="true">
-                                    <arg value="clean" />
+                                    <arg value="clean"/>
                                 </exec>
                             </tasks>
                         </configuration>
@@ -279,46 +222,4 @@
         </plugins>
     </build>
 
-
-
-
-    <!--<build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-    <dependencies>-->
-            <!--http://mvnrepository.com/artifact/org.slf4j/slf4j-api-->
-            <!--<dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-api</artifactId>
-                <version>1.7.2</version>
-            </dependency>
-            -->
-            <!--https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
-            <!-- <dependency>
-                <groupId>org.slf4j</groupId>
-                <artifactId>slf4j-log4j12</artifactId>
-                <version>1.7.2</version>
-                <scope>test</scope>
-            </dependency>-->
-
-        <!--<dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        
-
-
-    </dependencies>-->
 </project>

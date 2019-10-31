@@ -12,9 +12,8 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 
-public class QatOutputStream extends FilterOutputStream {
-    static final int HEADER_LENGTH = 4;
-    private static final Logger LOG = LogManager.getLogger(QatOutputStream.class);
+public class QatCompressionOutputStream extends FilterOutputStream {
+    private static final Logger LOG = LogManager.getLogger(QatCompressionOutputStream.class);
     private final boolean syncFlush;
     private final BufferAllocator tempBufferAllocator;
     protected byte[] buf;
@@ -42,8 +41,8 @@ public class QatOutputStream extends FilterOutputStream {
      * @param useNativeBuffer to identify if use nativeBuffer or not
      * @throws IllegalArgumentException if {@code size <= 0}
      */
-    public QatOutputStream(OutputStream out,
-                           int level, int size, boolean useNativeBuffer) {
+    public QatCompressionOutputStream(OutputStream out,
+                                      int level, int size, boolean useNativeBuffer) {
         super(out);
 
         if (out == null) {
@@ -94,7 +93,7 @@ public class QatOutputStream extends FilterOutputStream {
      *              must be >= 32 K
      * @throws IllegalArgumentException if {@code size <= 0}
      */
-    public QatOutputStream(OutputStream out, int level, int size) {
+    public QatCompressionOutputStream(OutputStream out, int level, int size) {
         this(out, level, size, false);
     }
 
@@ -107,7 +106,7 @@ public class QatOutputStream extends FilterOutputStream {
      * @throws IllegalArgumentException if {@code size <= 0}
      */
 
-    public QatOutputStream(OutputStream out, int level, boolean useNativeBuffer) {
+    public QatCompressionOutputStream(OutputStream out, int level, boolean useNativeBuffer) {
         this(out, level, 512, useNativeBuffer);
     }
 
@@ -120,7 +119,7 @@ public class QatOutputStream extends FilterOutputStream {
      * @param useNativeBuffer to identify the buffer
      */
 
-    public QatOutputStream(OutputStream out, boolean useNativeBuffer) {
+    public QatCompressionOutputStream(OutputStream out, boolean useNativeBuffer) {
         this(out, 3, useNativeBuffer);
     }
 
@@ -134,7 +133,7 @@ public class QatOutputStream extends FilterOutputStream {
      * @param size the maximum number of bytes to try to compress at once,
      *             must be >= 32 K
      */
-    public QatOutputStream(OutputStream out, int size) {
+    public QatCompressionOutputStream(OutputStream out, int size) {
         this(out, 3, size);
     }
 
@@ -146,7 +145,7 @@ public class QatOutputStream extends FilterOutputStream {
      *
      * @param out the output stream
      */
-    public QatOutputStream(OutputStream out) {
+    public QatCompressionOutputStream(OutputStream out) {
         this(out, false);
     }
 

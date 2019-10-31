@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
  * This class implements a stream filter for uncompressing data in the
  * "qat" compression format.
  */
-public class QatInputStream extends FilterInputStream {
+public class QatCompressionInputStream extends FilterInputStream {
 
     private final BufferAllocator compressedBufferAllocator;
     private final BufferAllocator uncompressedBufferAllocator;
@@ -65,7 +65,7 @@ public class QatInputStream extends FilterInputStream {
      * @param useNativeBuffer identify the buffer type
      * @throws IllegalArgumentException if {@code size <= 0}
      */
-    public QatInputStream(InputStream in, int size, boolean useNativeBuffer) {
+    public QatCompressionInputStream(InputStream in, int size, boolean useNativeBuffer) {
         super(in);
         if (in == null) {
             throw new NullPointerException();
@@ -117,7 +117,7 @@ public class QatInputStream extends FilterInputStream {
      * @param in              the input stream
      * @param useNativeBuffer true if the buffer is native
      */
-    public QatInputStream(InputStream in, boolean useNativeBuffer) {
+    public QatCompressionInputStream(InputStream in, boolean useNativeBuffer) {
         this(in, 512, useNativeBuffer);
     }
 
@@ -125,7 +125,7 @@ public class QatInputStream extends FilterInputStream {
      * Creates a new input stream with a default buffer and buffer size.
      * @param in the input stream
      */
-    public QatInputStream(InputStream in) {
+    public QatCompressionInputStream(InputStream in) {
         this(in, 512, true);
         useDefaultQatDecompressor = true;
     }
