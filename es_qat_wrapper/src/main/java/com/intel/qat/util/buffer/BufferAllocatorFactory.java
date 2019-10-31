@@ -17,12 +17,8 @@
 
 package com.intel.qat.util.buffer;
 
-/**
- *
- */
-public interface BufferAllocatorFactory
-{
+public interface BufferAllocatorFactory {
 
-  BufferAllocator getBufferAllocator(int minSize);
+    BufferAllocator getBufferAllocator(int minSize);
 }
 

@@ -17,30 +17,37 @@
 
 package com.intel.qat.jni;
 
-import java.nio.ByteBuffer;
-
 import com.intel.qat.util.NativeCodeLoader;
+
+import java.nio.ByteBuffer;
 
 /**
  * JNI bindings to the original C implementation of QatCodec.
  */
 public enum QatCodecJNI {
-  ;
-  static {
-    NativeCodeLoader.load();
-    init();
+    ;
 
-  }
+    static {
+        NativeCodeLoader.load();
+        init();
+    }
 
-  static native void init();
-  public static native Object allocNativeBuffer(int capacity, int align);
-  public static native long createCompressContext(int level);
-  public static native long createDecompressContext();
-  public static native void destroyContext(long context);
-  public static native int compress(long context, ByteBuffer srcBuffer, int srcOff, int srcLen,
-          ByteBuffer destBuffer, int destOff, int maxDestLen);
-  public static native int decompress(long context, ByteBuffer srcBuffer, int srcOff, int srcLen,
-          ByteBuffer destBuffer, int destOff, int destLen);
-  public static native String getLibraryName(int codec);
+    static native void init();
+
+    public static native Object allocNativeBuffer(int capacity, int align);
+
+    public static native long createCompressContext(int level);
+
+    public static native long createDecompressContext();
+
+    public static native void destroyContext(long context);
+
+    public static native int compress(long context, ByteBuffer srcBuffer, int srcOff, int srcLen,
+                                      ByteBuffer destBuffer, int destOff, int maxDestLen);
+
+    public static native int decompress(long context, ByteBuffer srcBuffer, int srcOff, int srcLen,
+                                        ByteBuffer destBuffer, int destOff, int destLen);
+
+    public static native String getLibraryName(int codec);
 }
 

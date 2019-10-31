@@ -18,8 +18,9 @@
 package com.intel.qat.util.buffer;
 
 import com.intel.qat.jni.QatCodecJNI;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.lang.ref.SoftReference;
 import java.nio.ByteBuffer;
@@ -27,55 +28,40 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Cached buffer
  */
-public class CachedBufferAllocator implements BufferAllocator 
-{
-   // private static final Logger LOG = LoggerFactory.getLogger(CachedBufferAllocator.class);
-   private final Logger LOG = LogManager.getLogger(CachedBufferAllocator.class);
-
-    private static BufferAllocatorFactory factory = new BufferAllocatorFactory()
-    {
+public class CachedBufferAllocator implements BufferAllocator {
+    private static final Logger LOG = LogManager.getLogger(CachedBufferAllocator.class);
+    //Use SoftReference so that having this queueTable does not prevent the GC of CachedBufferAllocator instances
+    private static final Map<Integer, SoftReference<CachedBufferAllocator>> queueTable = new HashMap<Integer, SoftReference<CachedBufferAllocator>>();
+    private static BufferAllocatorFactory factory = new BufferAllocatorFactory() {
         @Override
-        public BufferAllocator getBufferAllocator(int bufferSize)
-        {
+        public BufferAllocator getBufferAllocator(int bufferSize) {
             return CachedBufferAllocator.getAllocator(bufferSize);
         }
     };
+    private final int bufferSize;
+    private final Deque<ByteBuffer> directByteBufferQueue;
+    private final Deque<byte[]> byteArrayQueue;
 
-    public static void setBufferAllocatorFactory(BufferAllocatorFactory factory)
-    {
+    public CachedBufferAllocator(int bufferSize) {
+        this.bufferSize = bufferSize;
+        this.byteArrayQueue = new ArrayDeque<byte[]>();
+        this.directByteBufferQueue = new ArrayDeque<ByteBuffer>();
+    }
+
+    public static BufferAllocatorFactory getBufferAllocatorFactory() {
+        return factory;
+    }
+
+    public static void setBufferAllocatorFactory(BufferAllocatorFactory factory) {
         assert (factory != null);
         CachedBufferAllocator.factory = factory;
     }
 
-    public static BufferAllocatorFactory getBufferAllocatorFactory()
-    {
-        return factory;
-    }
-
-    /**
-     * Use SoftReference so that having this queueTable does not prevent the GC of CachedBufferAllocator instances
-     */
-    private static final Map<Integer, SoftReference<CachedBufferAllocator>> queueTable = new HashMap<Integer, SoftReference<CachedBufferAllocator>>();
-
-    private final int bufferSize;
-    private final Deque<ByteBuffer> directByteBufferQueue;
-	private final Deque<byte[]> byteArrayQueue;
-
-    public CachedBufferAllocator(int bufferSize)
-    {
-        this.bufferSize = bufferSize;
-		this.byteArrayQueue = new ArrayDeque<byte[]>();
-        this.directByteBufferQueue = new ArrayDeque<ByteBuffer>();
-    }
-
-    public static synchronized CachedBufferAllocator getAllocator(int bufferSize)
-    {
+    public static synchronized CachedBufferAllocator getAllocator(int bufferSize) {
         CachedBufferAllocator result = null;
 
         if (queueTable.containsKey(bufferSize)) {
@@ -89,8 +75,7 @@ public class CachedBufferAllocator implements BufferAllocator
     }
 
     @Override
-    public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align)
-    {
+    public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align) {
         synchronized (this) {
             if (directByteBufferQueue.isEmpty()) {
                 if (useNativeBuffer) {
@@ -102,37 +87,32 @@ public class CachedBufferAllocator implements BufferAllocator
                     }
                 }
                 return ByteBuffer.allocateDirect(size);
-            }
-            else {
+            } else {
                 return directByteBufferQueue.pollFirst();
             }
         }
     }
 
     @Override
-    public void releaseDirectByteBuffer(ByteBuffer buffer)
-    {
+    public void releaseDirectByteBuffer(ByteBuffer buffer) {
         synchronized (this) {
             directByteBufferQueue.addLast(buffer);
         }
     }
 
-   @Override
-    public byte[] allocateByteArray(int size)
-    {
+    @Override
+    public byte[] allocateByteArray(int size) {
         synchronized (this) {
             if (byteArrayQueue.isEmpty()) {
                 return new byte[size];
-            }
-            else {
+            } else {
                 return byteArrayQueue.pollFirst();
             }
         }
     }
 
     @Override
-    public void releaseByteArray(byte[] buffer)
-    {
+    public void releaseByteArray(byte[] buffer) {
         synchronized (this) {
             byteArrayQueue.addLast(buffer);
         }

@@ -22,14 +22,13 @@ import java.nio.ByteBuffer;
 /**
  * BufferAllocator interface. The implementation of this interface must be thread-safe
  */
-public interface BufferAllocator
-{
+public interface BufferAllocator {
 
-  public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align);
+    ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align);
 
-  public void releaseDirectByteBuffer(ByteBuffer buffer);
+    void releaseDirectByteBuffer(ByteBuffer buffer);
 
-  public byte[] allocateByteArray(int size);
+    byte[] allocateByteArray(int size);
 
-  public void releaseByteArray(byte[] buffer);
+    void releaseByteArray(byte[] buffer);
 }
