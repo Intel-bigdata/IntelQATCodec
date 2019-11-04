@@ -194,7 +194,6 @@ public class QatCompressionOutputStream extends FilterOutputStream {
         if (b == null) {
             throw new NullPointerException();
         }
-
         if (len < 0 || off < 0 || len > b.length - off) {
             throw new ArrayIndexOutOfBoundsException("The output stream need length " + len + " from offset " + off + " in buffer of size " + b.length);
         }
