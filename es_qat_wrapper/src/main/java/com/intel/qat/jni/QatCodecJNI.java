@@ -24,9 +24,7 @@ import java.nio.ByteBuffer;
 /**
  * JNI bindings to the original C implementation of QatCodec.
  */
-public enum QatCodecJNI {
-    ;
-
+public class QatCodecJNI {
     static {
         NativeCodeLoader.load();
         init();

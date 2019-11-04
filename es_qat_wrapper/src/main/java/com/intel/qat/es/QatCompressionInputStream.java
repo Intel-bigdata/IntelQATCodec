@@ -21,6 +21,8 @@ package com.intel.qat.es;
 import com.intel.qat.jni.QatCodecJNI;
 import com.intel.qat.util.buffer.BufferAllocator;
 import com.intel.qat.util.buffer.CachedBufferAllocator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.EOFException;
 import java.io.FilterInputStream;
@@ -33,7 +35,7 @@ import java.nio.ByteBuffer;
  * "qat" compression format.
  */
 public class QatCompressionInputStream extends FilterInputStream {
-
+    private static final Logger LOG = LogManager.getLogger(QatCompressionInputStream.class);
     private final BufferAllocator compressedBufferAllocator;
     private final BufferAllocator uncompressedBufferAllocator;
     private final ByteBuffer compressedBuffer;
@@ -189,6 +191,7 @@ public class QatCompressionInputStream extends FilterInputStream {
 
         if (uncompressedBufferPosition == originalLen) {
             fill();
+            LOG.info("--> Reads uncompressed(QAT) data into bytes");
         }
         if (reachEOF) {
             return -1;
@@ -277,6 +280,7 @@ public class QatCompressionInputStream extends FilterInputStream {
 
         if (uncompressedBufferPosition == originalLen) {
             fill();
+            LOG.info("--> Decompress the data with QAT in skip <--");
         }
         if (reachEOF) {
             return -1;

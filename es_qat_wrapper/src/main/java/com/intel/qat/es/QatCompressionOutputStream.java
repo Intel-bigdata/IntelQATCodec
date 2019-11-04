@@ -213,6 +213,7 @@ public class QatCompressionOutputStream extends FilterOutputStream {
 
         uncompressedBuffer.put(b, off, len);
         uncompressedBufferPosition += len;
+        LOG.info("--> Writes bytes to the compressed(QAT) output stream");
     }
 
     private void compressedBufferData() throws IOException {
@@ -236,11 +237,9 @@ public class QatCompressionOutputStream extends FilterOutputStream {
             totalWrite += byteToWrite;
             off = 0;
         }
-
         uncompressedBuffer.clear();
         compressedBuffer.clear();
         uncompressedBufferPosition = 0;
-
     }
 
     /**
@@ -253,6 +252,7 @@ public class QatCompressionOutputStream extends FilterOutputStream {
     public void finish() throws IOException {
         checkStream();
         compressedBufferData();
+        LOG.info("--> Finishes writing compressed(QAT) data to the output stream");
         out.flush();
     }
 
@@ -278,13 +278,14 @@ public class QatCompressionOutputStream extends FilterOutputStream {
             out = null;
             QatCodecJNI.destroyContext(context);
             context = 0;
+            LOG.debug("Close Qat OutputStream with level " + level);
         }
-        LOG.debug("Close Qat OutputStream with level " + level);
     }
 
     public void flush() throws IOException {
         checkStream();
         compressedBufferData();
+        LOG.info("--> Flush the data(QAT Compress)");
         out.flush();
     }
 }
