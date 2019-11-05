@@ -212,7 +212,7 @@ public class QatCompressionOutputStream extends FilterOutputStream {
 
         uncompressedBuffer.put(b, off, len);
         uncompressedBufferPosition += len;
-        LOG.info("--> Writes bytes to the compressed(QAT) output stream");
+        LOG.debug("--> Writes bytes to the compressed(QAT) output stream");
     }
 
     private void compressedBufferData() throws IOException {
@@ -251,7 +251,7 @@ public class QatCompressionOutputStream extends FilterOutputStream {
     public void finish() throws IOException {
         checkStream();
         compressedBufferData();
-        LOG.info("--> Finishes writing compressed(QAT) data to the output stream");
+        LOG.debug("--> Finishes writing compressed(QAT) data to the output stream");
         out.flush();
     }
 
@@ -284,7 +284,7 @@ public class QatCompressionOutputStream extends FilterOutputStream {
     public void flush() throws IOException {
         checkStream();
         compressedBufferData();
-        LOG.info("--> Flush the data(QAT Compress)");
+        LOG.debug("--> Flush the data(QAT Compress)");
         out.flush();
     }
 }

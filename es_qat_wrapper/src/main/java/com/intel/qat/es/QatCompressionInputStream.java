@@ -191,7 +191,7 @@ public class QatCompressionInputStream extends FilterInputStream {
 
         if (uncompressedBufferPosition == originalLen) {
             fill();
-            LOG.info("--> Reads uncompressed(QAT) data into bytes");
+            LOG.debug("--> Reads uncompressed(QAT) data into bytes");
         }
         if (reachEOF) {
             return -1;
@@ -280,7 +280,7 @@ public class QatCompressionInputStream extends FilterInputStream {
 
         if (uncompressedBufferPosition == originalLen) {
             fill();
-            LOG.info("--> Decompress the data with QAT in skip <--");
+            LOG.debug("--> Decompress the data with QAT in skip <--");
         }
         if (reachEOF) {
             return -1;
