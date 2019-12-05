@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+      http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.intel.qat</groupId>
+    <artifactId>qat-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>kafka_qat_wrapper</artifactId>
+  <packaging>jar</packaging>
+  <description>Apache Kafka QAT Codec</description>
+  <name>Apache Kafka QAT Codec</name>
+
+  <properties>
+    <basedir>./</basedir>
+    <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+    <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>RELEASE</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+	  <groupId>commons-io</groupId>
+	  <artifactId>commons-io</artifactId>
+      <version>2.6</version>
+      <scope>test</scope>
+	</dependency>
+	<dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka_2.12</artifactId>
+      <version>2.3.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+  	<resources>
+      <resource>
+        <directory>${basedir}/src/main/native</directory>
+        <includes>
+          <include>*.so</include>
+        </includes>
+      </resource>
+    </resources>
+    <plugins>
+     <plugin>
+       <groupId>net.alchim31.maven</groupId>
+       <artifactId>scala-maven-plugin</artifactId>
+       <executions>
+         <execution>
+           <id>scala-compile-first</id>
+           <phase>process-resources</phase>
+           <goals>
+             <goal>add-source</goal>
+             <goal>compile</goal>
+           </goals>
+         </execution>
+         <execution>
+           <id>scala-test-compile</id>
+           <phase>process-test-resources</phase>
+           <goals>
+             <goal>testCompile</goal>
+           </goals>
+         </execution>
+       </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <propertyName>java.library.path</propertyName>
+            <buildDirectory>target</buildDirectory>
+          </systemPropertyVariables>
+          <environmentVariables>
+            <LD_LIBRARY_PATH>${basedir}/src/main/native</LD_LIBRARY_PATH>
+          </environmentVariables>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>${maven-antrun-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>build-native</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <echo>Java Home: ${java.home}</echo>
+                <property name="native.src.dir" value="${basedir}/src/main/native"/>
+                <exec dir="${native.src.dir}" executable="make" failonerror="true">
+                  <env key="JAVA_HOME" value="${java.home}/.." />
+                  <env key="QATZIP_SRC" value="${qatzip.src}" />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>clean-native</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <tasks>
+                <exec dir="src/main/native" executable="make" failonerror="true">
+                  <arg value="clean" />
+                </exec>
+              </tasks>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -1,3 +1,20 @@
+#/*
+# * Licensed to the Apache Software Foundation (ASF) under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The ASF licenses this file to You under the Apache License, Version 2.0
+# * (the "License"); you may not use this file except in compliance with
+# * the License.  You may obtain a copy of the License at
+# *
+# *    http://www.apache.org/licenses/LICENSE-2.0
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# */
+
 ifeq ($(VERBOSE),1)
 ECHO := 
 else
@@ -7,20 +24,19 @@ endif
 # A function to check whether every environment variable in a list is defined.
 check = $(foreach var,$(1),$(if $($(var)),,$(error Please set $(var))))
 
-TARGET := libCarbondataQatJNI.so
+TARGET := libkafkaqatjni.so
 
 MODULES :=
 
 # Source files.
-SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) CarbondataQatJNI.c
+SRCS := $(foreach D,$(MODULES),$(wildcard $D/*.c)) *.c
 
 # Include files.
 INCLUDES  := $(addprefix -I,$(MODULES)) \
 	-I$(JAVA_HOME)/include \
-        -I $(QATZIPSRC)/include \
 	-I$(JAVA_HOME)/include/linux \
 	-I$(QATZIP_SRC)/include \
-	-I/opt/intel/QATzip/include/ \
+    -I/opt/intel/QATzip/include/ \
 	-I.
 
 LIB_DIRS :=
@@ -56,7 +72,8 @@ jni:
 	@echo Generating jni header
 	$(call check,JAVA_HOME)
 	$(ECHO)$(JAVA_HOME)/bin/javah -cp ../../../target/classes \
-	com.intel.qat.jni.CarbondataQatJNI
+	com.intel.qat.codec.io.jni.QatNative
+
 
 clean:
 	$(ECHO)rm -rf *.so *.o
