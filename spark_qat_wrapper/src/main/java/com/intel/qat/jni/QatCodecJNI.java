@@ -41,5 +41,7 @@ public enum QatCodecJNI {
   public static native int decompress(long context, ByteBuffer srcBuffer, int srcOff, int srcLen,
           ByteBuffer destBuffer, int destOff, int destLen);
   public static native String getLibraryName(int codec);
+  public static native Object qzMalloc(long capacity, boolean numa,
+      boolean forcePinned);
 }
 

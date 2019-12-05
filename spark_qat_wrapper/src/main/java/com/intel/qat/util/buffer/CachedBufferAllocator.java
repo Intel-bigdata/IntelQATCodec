@@ -84,12 +84,22 @@ public class CachedBufferAllocator implements BufferAllocator
     }
 
     @Override
-    public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size, int align)
+    public ByteBuffer allocateDirectByteBuffer(boolean useNativeBuffer, int size,
+      int align, boolean useQzMalloc, boolean useForcePinned, boolean useNuma)
     {
         synchronized (this) {
             if (directByteBufferQueue.isEmpty()) {
                 if (useNativeBuffer) {
                     try {
+                        if (useQzMalloc) {
+                          try {
+                            return (ByteBuffer) QatCodecJNI.qzMalloc(size, useNuma,
+                              useForcePinned);
+                          } catch (Throwable t) {
+                              LOG.error("Native buffer allocation with qzMalloc failed and"
+                                  + " fall back to native without qzMalloc allocation.");
+                          }
+                        }
                         return (ByteBuffer) QatCodecJNI.allocNativeBuffer(size, align);
                     } catch (Throwable t) {
                         LOG.error("Native buffer allocation is failed and fall back to direct allocation.");
