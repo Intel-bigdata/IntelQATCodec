@@ -18,9 +18,10 @@
 
 package com.intel.qat.util;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+//import org.apache.logging.log4j.LogManager;
+//import org.apache.logging.log4j.Logger;
 //import org.slf4j.Logger;
 //import org.slf4j.LoggerFactory;
 /**
@@ -32,33 +33,30 @@ import org.apache.logging.log4j.Logger;
 
 public class QatNativeCodeLoader {
   //private static final Logger LOG = LoggerFactory.getLogger(QatNativeCodeLoader.class);
-  //private static final Logger LOG = LogManager.getLogger(QatNativeCodeLoader.class);
+  private static final Logger LOG = LogManager.getLogger(QatNativeCodeLoader.class);
   private static boolean nativeCodeLoaded = false;
 
   static {
     // Try to load native qat library and set fallback flag appropriately
-   /* if(LOG.isDebugEnabled()) {
+    if(LOG.isDebugEnabled()) {
       LOG.debug("Trying to load the custom-built native-qat library...");
-    }*/
+    }
     try {
       System.loadLibrary("qatcodec");
-      //LOG.debug("Loaded the native-qat library");
+      LOG.debug("Loaded the native-qat library");
       nativeCodeLoaded = true;
     } catch (Throwable t) {
       // Ignore failure to load
-      System.out.println("Failed to load native-qat with error: " + t);
-      System.out.println("java.library.path=" +
-              System.getProperty("java.library.path"));
-      /*if(LOG.isDebugEnabled()) {
+      if(LOG.isDebugEnabled()) {
         LOG.debug("Failed to load native-qat with error: " + t);
         LOG.debug("java.library.path=" +
             System.getProperty("java.library.path"));
-      }*/
+      }
     }
 
     if (!nativeCodeLoaded) {
-     /* LOG.warn("Unable to load native-qat library for your platform... " +
-               "using builtin-java classes where applicable");*/
+      LOG.warn("Unable to load native-qat library for your platform... " +
+               "using builtin-java classes where applicable");
     }
   }
 

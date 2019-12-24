@@ -24,11 +24,8 @@ import java.nio.ByteBuffer;
 import com.intel.qat.conf.QatConfigurationKeys;
 import com.intel.qat.util.QatNativeCodeLoader;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 /**
  * @author root
@@ -37,8 +34,7 @@ import org.apache.logging.log4j.Logger;
  * @link qat-parent
  */
 public class QatDecompressorJNI {
-   // private static final Logger LOG = LoggerFactory.getLogger(QatDecompressorJNI.class.getName());
-   // private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class.getName());
+    private static final Logger LOG = LogManager.getLogger(QatDecompressorJNI.class.getName());
 
     private static final int DEFAULT_DIRECT_BUFFER_SIZE = 64 * 1024;
 
@@ -63,8 +59,7 @@ public class QatDecompressorJNI {
                 initIDs();
                 nativeQatLoaded = true;
             } catch (Throwable t) {
-             //   LOG.error("failed to load QatDecompressor", t);
-                System.out.println("failed to load QatDecompressor" + t);
+                LOG.error("failed to load QatDecompressor", t);
             }
         }
     }
@@ -86,23 +81,23 @@ public class QatDecompressorJNI {
                            boolean forcePinned, boolean numa) {
         this.directBufferSize = directBufferSize;
         if (useNativeAllocateBB) {
-        //    LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
+            LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
             try {
                 uncompressedDirectBuf = (ByteBuffer) nativeAllocateBB(directBufferSize,
                         numa, forcePinned);
             } catch (Throwable t) {
-             /*   LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
+                LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
                         + " for uncompressed direct ByteBuffer. Creating the uncompressed"
-                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);*/
+                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);
                 uncompressedDirectBuf = ByteBuffer.allocateDirect(directBufferSize);
             }
             try {
                 compressedDirectBuf = (ByteBuffer) nativeAllocateBB(directBufferSize,
                         numa, forcePinned);
             } catch (Throwable t) {
-               /* LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
+                LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
                         + " for compressed direct ByteBuffer. Creating the compressed"
-                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);*/
+                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);
                 compressedDirectBuf = ByteBuffer.allocateDirect(directBufferSize);
             }
         } else {
@@ -320,9 +315,9 @@ public class QatDecompressorJNI {
      */
     public void end() {
         // do nothing
-        if(finished()){
+       /* if(finished()){
             reset();
-        }
+        }*/
     }
 
     private native static void initIDs();
