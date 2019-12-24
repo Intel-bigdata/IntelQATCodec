@@ -22,11 +22,11 @@ package com.intel.qat.jni;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 import com.intel.qat.conf.QatConfigurationKeys;
 import com.intel.qat.util.QatNativeCodeLoader;
@@ -41,8 +41,8 @@ import com.intel.qat.util.QatNativeCodeLoader;
 
 public class QatCompressorJNI {
 
-    private static final Logger LOG = LoggerFactory.getLogger(QatCompressorJNI.class.getName());
-    //private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class.getName());
+   //private static final Logger LOG = LoggerFactory.getLogger(QatCompressorJNI.class.getName());
+   // private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class.getName());
     private static final int DEFAULT_DIRECT_BUFFER_SIZE = 64 * 1024;
 
     // HACK - Use this as a global lock in the JNI layer
@@ -65,6 +65,7 @@ public class QatCompressorJNI {
     static {
         if (QatNativeCodeLoader.isNativeCodeLoaded() &&
                 QatNativeCodeLoader.buildSupportsQat()) {
+            System.out.println("-------->the library name is " + QatNativeCodeLoader.getLibraryName());
             try {
                 String value = System.getProperty("QAT_COMPRESS_LEVEL");
                 int level = 1;
@@ -73,21 +74,21 @@ public class QatCompressorJNI {
                         level = Integer.parseInt(value);
                         if (level < 1 || level > 9) {
                             level = 1;
-                            LOG.warn("Invalid value for compression level:" + value
+                           /* LOG.warn("Invalid value for compression level:" + value
                                     + ", value should be in range 1-9."
-                                    + " Proceeding with default value as 1.");
+                                    + " Proceeding with default value as 1.");*/
                         }
                     } catch (NumberFormatException e) {
                         level = 1;
-                        LOG.warn("Could not parse the value:" + value
+                      /*  LOG.warn("Could not parse the value:" + value
                                 + ", compression level should be in range 1-9."
-                                + " Proceeding with default value as 1.");
+                                + " Proceeding with default value as 1.");*/
                     }
                 }
                 initIDs(level);
                 nativeQatLoaded = true;
             } catch (Throwable t) {
-                LOG.error("failed to load QatCompressor AMAC QatCompressor", t);
+               // LOG.error("failed to load QatCompressor AMAC QatCompressor", t);
             }
         }
     }
@@ -107,23 +108,23 @@ public class QatCompressorJNI {
                          boolean forcePinned, boolean numa) {
         this.directBufferSize = directBufferSize;
         if (useNativeAllocateBB) {
-            LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
+           // LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
             try {
                 uncompressedDirectBuf = (ByteBuffer) nativeAllocateBB(directBufferSize,
                         numa, forcePinned);
             } catch (Throwable t) {
-                LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
+            /*    LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
                         + " for uncompressed direct ByteBuffer. Creating the uncompressed"
-                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);
+                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);*/
                 uncompressedDirectBuf = ByteBuffer.allocateDirect(directBufferSize);
             }
             try {
                 compressedDirectBuf = (ByteBuffer) nativeAllocateBB(directBufferSize,
                         numa, forcePinned);
             } catch (Throwable t) {
-                LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
+               /* LOG.error("Failed to create ByteBuffer using nativeAllocateBB"
                         + " for compressed direct ByteBuffer. Creating the compressed"
-                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);
+                        + " ByteBuffer using ByteBuffer.allocateDirect().", t);*/
                 compressedDirectBuf = ByteBuffer.allocateDirect(directBufferSize);
             }
         } else {

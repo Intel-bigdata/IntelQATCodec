@@ -18,11 +18,11 @@
 
 package com.intel.qat.util;
 
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 /**
  * A helper to load the native qat code i.e. libqat.so.
  * This handles the fallback to either the bundled libhadoop-Linux-i386-32.so
@@ -31,31 +31,34 @@ import org.slf4j.LoggerFactory;
  */
 
 public class QatNativeCodeLoader {
-  private static final Logger LOG = LoggerFactory.getLogger(QatNativeCodeLoader.class);
+  //private static final Logger LOG = LoggerFactory.getLogger(QatNativeCodeLoader.class);
   //private static final Logger LOG = LogManager.getLogger(QatNativeCodeLoader.class);
   private static boolean nativeCodeLoaded = false;
 
   static {
     // Try to load native qat library and set fallback flag appropriately
-    if(LOG.isDebugEnabled()) {
+   /* if(LOG.isDebugEnabled()) {
       LOG.debug("Trying to load the custom-built native-qat library...");
-    }
+    }*/
     try {
       System.loadLibrary("qatcodec");
-      LOG.debug("Loaded the native-qat library");
+      //LOG.debug("Loaded the native-qat library");
       nativeCodeLoaded = true;
     } catch (Throwable t) {
       // Ignore failure to load
-      if(LOG.isDebugEnabled()) {
+      System.out.println("Failed to load native-qat with error: " + t);
+      System.out.println("java.library.path=" +
+              System.getProperty("java.library.path"));
+      /*if(LOG.isDebugEnabled()) {
         LOG.debug("Failed to load native-qat with error: " + t);
         LOG.debug("java.library.path=" +
             System.getProperty("java.library.path"));
-      }
+      }*/
     }
 
     if (!nativeCodeLoaded) {
-      LOG.warn("Unable to load native-qat library for your platform... " +
-               "using builtin-java classes where applicable");
+     /* LOG.warn("Unable to load native-qat library for your platform... " +
+               "using builtin-java classes where applicable");*/
     }
   }
 

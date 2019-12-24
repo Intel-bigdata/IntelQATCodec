@@ -23,7 +23,6 @@
 #include "org_apache_hadoop_util_QatNativeCodeLoaderTest.h"
 #include "com_intel_qat_util_QatNativeCodeLoader.h"
 */
-
 /*
  * Class:     com_intel_qat_util_QatNativeCodeLoaderTest
  * Method:    buildSupportsQat
