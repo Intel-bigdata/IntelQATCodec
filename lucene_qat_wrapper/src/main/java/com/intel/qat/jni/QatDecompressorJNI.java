@@ -20,6 +20,7 @@ package com.intel.qat.jni;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import com.intel.qat.conf.QatConfigurationKeys;
 import com.intel.qat.util.QatNativeCodeLoader;
@@ -158,6 +159,12 @@ public class QatDecompressorJNI {
         // Reinitialize qat's output direct-buffer
         uncompressedDirectBuf.limit(directBufferSize);
         uncompressedDirectBuf.position(directBufferSize);
+
+        System.out.println("-------------> the result in the setInput is :<-------------------");
+        System.out.println("the content in the userBuf is: " + Arrays.toString(this.userBuf));
+        System.out.println("the userBufOff is : " + this.userBufOff);
+        System.out.println("the userBufLen is : " + this.userBufLen);
+        System.out.println("----------------end of the setInput ---------------------");
     }
 
     /**
@@ -252,6 +259,10 @@ public class QatDecompressorJNI {
 
     public int decompress(byte[] b, int off, int len)
             throws IOException {
+
+        System.out.println("------------go into the decompress ----------------");
+        System.out.println("the byte[] need to be decompressed is : " + Arrays.toString(b));
+        System.out.println("the content in compressedBuffer is : "+ compressedDirectBuf);
         if (b == null) {
             throw new NullPointerException();
         }
@@ -273,8 +284,23 @@ public class QatDecompressorJNI {
             uncompressedDirectBuf.rewind();
             uncompressedDirectBuf.limit(directBufferSize);
 
+            System.out.println("the capacity of  compressedDirectBuf is : " + this.compressedDirectBuf.capacity());
+            System.out.println("the position of compressedDirectBuf is : " + this.compressedDirectBuf.position());
+            System.out.println("the limit of the compressedDirectBuf is : " + this.compressedDirectBuf.limit());
+
+
+            System.out.println("the capacity of  uncompressedDirectBuf is : " + this.uncompressedDirectBuf.capacity());
+            System.out.println("the position of uncompressedDirectBuf is : " + this.uncompressedDirectBuf.position());
+            System.out.println("the limit of the uncompressedDirectBuf is : " + this.uncompressedDirectBuf.limit());
+            System.out.println("the off of userBuf is :" + this.userBufOff);
+            System.out.println("the len of the userBuf is  : " + this.userBufLen);
+            System.out.println("----------->next step is using the native function :");
+
             // Decompress data
             n = decompressBytesDirect();
+
+            System.out.println("----------------end of using native func");
+
             uncompressedDirectBuf.limit(n);
 
             if (userBufLen <= 0) {
@@ -284,8 +310,11 @@ public class QatDecompressorJNI {
             // Get atmost 'len' bytes
             n = Math.min(n, len);
             ((ByteBuffer) uncompressedDirectBuf).get(b, off, n);
+
+            System.out.println("-------------go out of the condition compressedDirectBufLen");
         }
 
+        System.out.println("-----------------go out of the decompress --------------");
         return n;
     }
 

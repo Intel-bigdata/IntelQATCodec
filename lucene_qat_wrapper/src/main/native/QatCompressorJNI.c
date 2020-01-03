@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL Java_com_intel_qat_jni_QatCompressorJNI_initIDs
                                                        "directBufferSize", "I");
   dlsym_qzGetDefaults(&params);
   params.comp_lvl = level;
-  fprintf(stderr, "compression level is %d, tid is %d\n", level, syscall(__NR_gettid));
+  fprintf(stderr, "compression level is eeeeeeeee %d, tid is %d\n", level, syscall(__NR_gettid));
   dlsym_qzSetDefaults(&params);
 }
 
