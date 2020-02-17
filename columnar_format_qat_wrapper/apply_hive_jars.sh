@@ -17,7 +17,7 @@
 # */
 #!/bin/bash
 
-declare -a supported_CDH_versions=("5.14.2")
+declare -a supported_CDH_versions=("5.14.2" "6.2.1")
 declare -A cdh_parquet_format_version_m=( ["5.14.2"]="2.1.0")
 declare -A cdh_parquet_mr_version_m=( ["5.14.2"]="1.5.0")
 declare -A cdh_hive_version_m=( ["5.14.2"]="1.1.0")
@@ -38,7 +38,7 @@ function usage(){
 
 function check_CDH_version(){
   valid_version=false
-  for v in $supported_CDH_versions
+  for v in ${supported_CDH_versions[@]}
   do
   	if [ "$v" =  "$1" ]; then
 		valid_version=true
@@ -54,7 +54,11 @@ function check_CDH_version(){
 apply_patch_to_cdh_hive(){
   pushd $TARGET_DIR
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-  HIVE_BRANCH="cdh$CDH_major_version-${cdh_hive_version_m[$CDH_release_version]}_$CDH_release_version"
+  if [ "$CDH_major_version" = "6" ]; then
+    HIVE_BRANCH="cdh$CDH_release_version"
+  else
+    HIVE_BRANCH="cdh$CDH_major_version-${cdh_hive_version_m[$CDH_release_version]}_$CDH_release_version"
+  fi
   clone_repo $HIVE_BRANCH $HIVE_REPO
   echo yes | cp -rf $HIVE_QAT_DIR/$CDH_release_version/hive $TARGET_DIR/
   popd
@@ -63,7 +67,11 @@ apply_patch_to_cdh_hive(){
 apply_patch_to_cdh_parquet_format(){
   pushd $TARGET_DIR
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-  PARQUET_FORMAT_BRANCH="cdh$CDH_major_version-${cdh_parquet_format_version_m[$CDH_release_version]}_$CDH_release_version"
+  if [ "$CDH_major_version" = "6" ]; then
+    PARQUET_FORMAT_BRANCH="cdh$CDH_release_version"
+  else
+    PARQUET_FORMAT_BRANCH="cdh$CDH_major_version-${cdh_parquet_format_version_m[$CDH_release_version]}_$CDH_release_version"
+  fi
   clone_repo $PARQUET_FORMAT_BRANCH $PARQUET_FORMAT_REPO
   echo yes | cp -rf $HIVE_QAT_DIR/$CDH_release_version/parquet-format $TARGET_DIR/
   popd
@@ -72,7 +80,11 @@ apply_patch_to_cdh_parquet_format(){
 apply_patch_to_cdh_parquet_mr(){
   pushd $TARGET_DIR
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-  PARQUET_MR_BRANCH="cdh$CDH_major_version-${cdh_parquet_mr_version_m[$CDH_release_version]}_$CDH_release_version"
+  if [ "$CDH_major_version" = "6" ]; then
+    PARQUET_MR_BRANCH="cdh$CDH_release_version"
+  else
+    PARQUET_MR_BRANCH="cdh$CDH_major_version-${cdh_parquet_mr_version_m[$CDH_release_version]}_$CDH_release_version"
+  fi
   clone_repo $PARQUET_MR_BRANCH $PARQUET_MR_REPO
   echo yes | cp -rf $HIVE_QAT_DIR/$CDH_release_version/parquet-mr $TARGET_DIR/
   popd
