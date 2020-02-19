@@ -235,9 +235,6 @@ public class QatDecompressorJNI {
     /**
      * Returns true if the end of the decompressed
      * data output stream has been reached.
-     *
-     * @return <code>true</code> if the end of the decompressed
-     *         data output stream has been reached.
      */
 
     public boolean finished() {
@@ -261,8 +258,9 @@ public class QatDecompressorJNI {
             throws IOException {
 
         System.out.println("------------go into the decompress ----------------");
-        System.out.println("the byte[] need to be decompressed is : " + Arrays.toString(b));
-        System.out.println("the content in compressedBuffer is : "+ compressedDirectBuf);
+       // System.out.println("the byte[] need to be decompressed is : " + Arrays.toString(b));
+        System.out.println("the content in compressedBuffer is : \n"+ compressedDirectBuf);
+        System.out.println("the content in uncompressedDirectBuf is : \n" + uncompressedDirectBuf);
         if (b == null) {
             throw new NullPointerException();
         }
@@ -300,6 +298,10 @@ public class QatDecompressorJNI {
             n = decompressBytesDirect();
 
             System.out.println("----------------end of using native func");
+
+            System.out.println("the capacity of  compressedDirectBuf is : " + this.compressedDirectBuf.capacity());
+            System.out.println("the position of compressedDirectBuf is : " + this.compressedDirectBuf.position());
+            System.out.println("the limit of the compressedDirectBuf is : " + this.compressedDirectBuf.limit());
 
             uncompressedDirectBuf.limit(n);
 
@@ -344,6 +346,7 @@ public class QatDecompressorJNI {
      */
     public void end() {
         // do nothing
+        reset();
        /* if(finished()){
             reset();
         }*/
