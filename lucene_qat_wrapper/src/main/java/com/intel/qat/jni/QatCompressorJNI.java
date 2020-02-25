@@ -40,7 +40,7 @@ import com.intel.qat.util.QatNativeCodeLoader;
 public class QatCompressorJNI {
 
     private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class.getName());
-    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 64 * 1024;
+    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 640 * 1024;
 
     // HACK - Use this as a global lock in the JNI layer
     @SuppressWarnings({"rawtypes"})

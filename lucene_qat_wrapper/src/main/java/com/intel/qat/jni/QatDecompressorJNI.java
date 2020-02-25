@@ -161,7 +161,7 @@ public class QatDecompressorJNI {
         uncompressedDirectBuf.position(directBufferSize);
 
         System.out.println("-------------> the result in the setInput is :<-------------------");
-        System.out.println("the content in the userBuf is: " + Arrays.toString(this.userBuf));
+       // System.out.println("the content in the userBuf is: " + Arrays.toString(this.userBuf));
         System.out.println("the userBufOff is : " + this.userBufOff);
         System.out.println("the userBufLen is : " + this.userBufLen);
         System.out.println("----------------end of the setInput ---------------------");

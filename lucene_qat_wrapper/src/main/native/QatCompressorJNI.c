@@ -128,11 +128,32 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_jni_QatCompressorJNI_compressBytesDire
     return (jint)0;
   }
 
+ /*   FILE *p;
+  p = fopen("/tmp/QatCompressorJNI_compressBytesDirect1.txt","a+");
+
+  fprintf(p, "\n ----------------------> the (source data) uncompressed_bytes before qzCompress is  %d : \n", uncompressed_direct_buf_len);
+   fprintf(p,"the uncompressed_bytes(source data) before qzDecompress : \n");
+
+    int i =0;
+    for(i = 0; i < uncompressed_direct_buf_len; i++){
+        fprintf(p,"%02x , ",uncompressed_bytes[i]);
+        fprintf(stderr,"%02x , ",uncompressed_bytes[i]);
+    }*/
+
   /* size_t should always be 4 bytes or larger. */
   buf_len = compressed_direct_buf_len;
   src_len = uncompressed_direct_buf_len;
   ret = dlsym_qzCompress(&g_qzCompressSession, uncompressed_bytes, &src_len,
         compressed_bytes, &buf_len, 1);
+
+  /* fprintf(p, "\n ----------------------> the compressed_bytes after qzCompress is  %d : \n", buf_len);
+   fprintf(p,"the compressed_bytes after qzDecompress : \n");
+
+      for(i = 0; i < buf_len; i++){
+          fprintf(p,"%02x , ",compressed_bytes[i]);
+          fprintf(stderr,"%02x , ",compressed_bytes[i]);
+      }*/
+
   if (ret != QZ_OK){
     THROW(env, "java/lang/InternalError", "Could not compress data, return " + ret);
     return 0;
