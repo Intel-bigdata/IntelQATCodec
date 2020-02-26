@@ -25,9 +25,7 @@
 #include <string.h>
 #include <sys/syscall.h>
 
-
 #include "com_intel_qat_jni_QatDecompressorJNI.h"
-
 
 static jfieldID QatDecompressorJNI_clazz;
 static jfieldID QatDecompressorJNI_compressedDirectBuf;
@@ -38,9 +36,9 @@ static jfieldID QatDecompressorJNI_directBufferSize;
 #define qaePinnedMemAlloc(x, y)  qaeMemAllocNUMA((x), (y), 8)
 #define qaePinnedMemFree(x)      qaeMemFreeNUMA((void **)&(x))
 
-/*__thread QzSession_T  g_qzDecompressSession = {
+__thread QzSession_T  g_qzDecompressSession = {
     .internal = NULL,
-};*/
+};
 
 #ifdef UNIX
 static int (*dlsym_qzDecompress)(QzSession_T *sess, const unsigned char* src,
@@ -95,7 +93,7 @@ QzSession_T  g_qzDecompressSession = {
   LOAD_DYNAMIC_SYMBOL(__dlsym_qatzip_uncompress, dlsym_qzDecompress, env, libqatzip, "qzDecompress");
 #endif
 
-  fprintf(stderr, "-------> decompression level is feeeeeeeffffffffeeeee20200109-20200219-20200225, tid is %d\n",syscall(__NR_gettid));
+  fprintf(stderr, "-------> decompression tid is %d\n",syscall(__NR_gettid));
   fflush(stderr);
   QatDecompressorJNI_clazz = (*env)->GetStaticFieldID(env, clazz, "clazz",
                                                    "Ljava/lang/Class;");
@@ -113,35 +111,11 @@ QzSession_T  g_qzDecompressSession = {
 
 JNIEXPORT jint JNICALL Java_com_intel_qat_jni_QatDecompressorJNI_decompressBytesDirect
 (JNIEnv *env, jobject thisj){
-/*
-   g_qzDecompressSession = {
-        .internal = NULL,
-   };
-*/
-    QzSession_T  g_qzDecompressSession = {
-    .internal = NULL,
-    };
+
   const unsigned char* compressed_bytes = NULL;
   unsigned char* uncompressed_bytes = NULL;
   unsigned int compressed_buf_len;
   int ret;
-
-  FILE *p;
-  //p = fopen("/home/sparkuser/Downloads/QatDecompressorJNI_decompressBytesDirect.txt","wb+");
-  //p = fopen("/home/sparkuser/Downloads/QatDecompressorJNI_decompressBytesDirect.txt","w+");
-  p = fopen("/tmp/QatDecompressorJNI_decompressBytesDirect1.txt","a+");
-  fprintf(stderr, " tid is %d\n", syscall(__NR_gettid));
-  fprintf(p, " 20200219-20200225 , tid is %d\n", syscall(__NR_gettid));
-  if(p!=NULL){
-  fprintf(stderr,"the file have open \n");
-  fflush(stderr);
-  }
-  else{
-  fprintf(stderr,"the file not open \n");
-  fflush(stderr);
-  }
-
-  fprintf(stderr,"----->out of file \n");
 
   // Get members of QatDecompressorJNI
   jobject clazz = (*env)->GetStaticObjectField(env,thisj, QatDecompressorJNI_clazz);
@@ -150,24 +124,10 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_jni_QatDecompressorJNI_decompressBytes
   jobject uncompressed_direct_buf = (*env)->GetObjectField(env,thisj, QatDecompressorJNI_uncompressedDirectBuf);
   unsigned int uncompressed_direct_buf_len = (*env)->GetIntField(env, thisj, QatDecompressorJNI_directBufferSize);
 
-
-   fprintf(p,"Before decompress, the compressed_direct_buf_len is %d \n",compressed_direct_buf_len);
-   fprintf(p,"Before decompress, the uncompressed_direct_buf_len is %d \n",uncompressed_direct_buf_len);
-
-
   // Get the input direct buffer
   LOCK_CLASS(env, clazz, "QatDecompressorJNI");
   compressed_bytes = (const unsigned char*)(*env)->GetDirectBufferAddress(env, compressed_direct_buf);
   UNLOCK_CLASS(env, clazz, "QatDecompressorJNI");
-
-/*  fprintf(p,"the compressed_bytes get from the input direct buffer : \n");
- // fputs(compressed_bytes,p);
-
-    int i;
-    for(i = 0; i < compressed_direct_buf_len; i++){
-        fprintf(p,"%02x , ",compressed_bytes[i]);
-        fprintf(stderr,"%02x , ",compressed_bytes[i]);
-    }*/
 
   if (compressed_bytes == 0) {
     return (jint)0;
@@ -178,87 +138,13 @@ JNIEXPORT jint JNICALL Java_com_intel_qat_jni_QatDecompressorJNI_decompressBytes
   uncompressed_bytes = (unsigned char *)(*env)->GetDirectBufferAddress(env, uncompressed_direct_buf);
   UNLOCK_CLASS(env, clazz, "QatDecompressorJNI");
 
-  //fprintf(p,"the uncompressed_bytes get from the input direct buffer : \n");
-  //fputs(uncompressed_bytes,p);
-  //fprintf(p,"\n");
-
- /* for(i = 0; i < uncompressed_direct_buf_len; i++){
-      fprintf(p,"%02x , ",uncompressed_bytes[i]);
-      fprintf(stderr,"%02x , ",uncompressed_bytes[i]);
-  }*/
-
   if (uncompressed_bytes == 0) {
     return (jint)0;
   }
 
-
   compressed_buf_len = compressed_direct_buf_len;
-  fprintf(p, "\n ----------------------> the compressed_buf_len before qzDecompress is  %d : \n", compressed_buf_len);
- /*fprintf(p,"the compressed_bytes before qzDecompress : \n");
- int i =0;
-  for(i = 0; i < compressed_direct_buf_len; i++){
-      fprintf(p,"%02x , ",compressed_bytes[i]);
-      fprintf(stderr,"%02x , ",compressed_bytes[i]);
-  }*/
-
-
   ret = dlsym_qzDecompress(&g_qzDecompressSession, compressed_bytes, &compressed_buf_len,
         uncompressed_bytes, &uncompressed_direct_buf_len);
-
-/*const unsigned char compressed_bytes1[38] = {0x2f , 0x8b , 0x08 , 0x04 , 00 , 00 , 00 , 00 , 00 , 0xff , 0x0c , 00 , 0x51 , 0x5a , 0x08 , 00 , 00 , 00 , 00 , 00 , 00 , 00 , 00 , 00 , 0x63 , 0x62 , 0x66 , 01 , 00 , 0xa6 , 0x9a , 0x85 , 0xd0 , 03 , 00 , 00 , 00 , 00};
- jint compressed_direct_buf_len1=38;
- compressed_buf_len = compressed_direct_buf_len1;
-
- fprintf(p, "\n ----------------------> the compressed_buf_len before qzDecompress is  %d : \n", compressed_buf_len);
-
- fprintf(p, "\n ----------------------> the compressed_bytes1 before qzDecompress : \n");
-  //fputs(compressed_bytes,p);
-    for(i = 0; i < 38; i++){
-        fprintf(p,"%02x , ",compressed_bytes1[i]);
-        fprintf(stderr,"%02x , ",compressed_bytes1[i]);
-    }
-
- ret = dlsym_qzDecompress(&g_qzCompressSession, compressed_bytes1, &compressed_buf_len,
-        uncompressed_bytes, &uncompressed_direct_buf_len);
-
- fprintf(p,"\n the compressed_buf_len after qzDecompress %d: \n",compressed_buf_len);
- fprintf(p,"\n the uncompressed_direct_buf_len after qzDecompress %d : \n", uncompressed_direct_buf_len);
-
- fprintf(p, "\n ------------------->the compressed_bytes1 after qzDecompress : \n");
-   for(i = 0; i < 38; i++){
-        fprintf(p,"%02x , ",compressed_bytes1[i]);
-        fprintf(stderr,"%02x , ",compressed_bytes1[i]);
-    }
- */
-
-  fprintf(p,"\n the compressed_buf_len after qzDecompress %d: \n",compressed_buf_len);
-
-  fprintf(p,"\n the uncompressed_direct_buf_len after qzDecompress %d : \n", uncompressed_direct_buf_len);
-
-
- /* fprintf(p, "\n the compressed_bytes after qzDecompress : \n");
-  //fputs(compressed_bytes,p);
-    for(i = 0; i < compressed_direct_buf_len; i++){
-        fprintf(p,"%02x , ",compressed_bytes[i]);
-        fprintf(stderr,"%02x , ",compressed_bytes[i]);
-    }
-
-
-  fprintf(p,"\n the uncompressed_bytes after qaDecompress : \n");
-  //fputs(uncompressed_bytes,p);
-    for(i = 0; i < uncompressed_direct_buf_len; i++){
-        fprintf(p,"%02x , ",uncompressed_bytes[i]);
-        fprintf(stderr,"%02x , ",uncompressed_bytes[i]);
-    }*/
-
-
-  fprintf(p,"\n the result of the qzDecompress is %d \n", ret);
-
-  fprintf(stderr,"\n the result of the qzDecompress is %d \n", ret);
-
-  //   fwrite(in,srcLen,1,p);
-     //fprintf(p,"%d",out);
-     fclose(p);
 
   if (ret != QZ_OK) {
     THROW(env, "java/lang/InternalError", "Could not decompress data, return " + ret);

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,15 +19,14 @@
 
 package com.intel.qat.jni;
 
-import java.io.IOException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
+import com.intel.qat.conf.QatConfigurationKeys;
+import com.intel.qat.util.QatNativeCodeLoader;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-
-import com.intel.qat.conf.QatConfigurationKeys;
-import com.intel.qat.util.QatNativeCodeLoader;
+import java.io.IOException;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 
 /**
@@ -45,24 +44,11 @@ public class QatCompressorJNI {
     // HACK - Use this as a global lock in the JNI layer
     @SuppressWarnings({"rawtypes"})
     private static Class clazz = QatCompressorJNI.class;
-
-    private int directBufferSize;
-    private Buffer compressedDirectBuf = null;
-    private int uncompressedDirectBufLen;
-    private Buffer uncompressedDirectBuf = null;
-    private byte[] userBuf = null;
-    private int userBufOff = 0, userBufLen = 0;
-    private boolean finish, finished;
-
-    private long bytesRead = 0L;
-    private long bytesWritten = 0L;
-
     private static boolean nativeQatLoaded = false;
 
     static {
         if (QatNativeCodeLoader.isNativeCodeLoaded() &&
                 QatNativeCodeLoader.buildSupportsQat()) {
-            System.out.println("-------->the library name is " + QatNativeCodeLoader.getLibraryName());
             try {
                 String value = System.getProperty("QAT_COMPRESS_LEVEL");
                 int level = 1;
@@ -90,9 +76,15 @@ public class QatCompressorJNI {
         }
     }
 
-    public static boolean isNativeCodeLoaded() {
-        return nativeQatLoaded;
-    }
+    private int directBufferSize;
+    private Buffer compressedDirectBuf = null;
+    private int uncompressedDirectBufLen;
+    private Buffer uncompressedDirectBuf = null;
+    private byte[] userBuf = null;
+    private int userBufOff = 0, userBufLen = 0;
+    private boolean finish, finished;
+    private long bytesRead = 0L;
+    private long bytesWritten = 0L;
 
     /**
      * Creates a new compressor.
@@ -102,7 +94,7 @@ public class QatCompressorJNI {
      * @param forcePinned
      */
     public QatCompressorJNI(int directBufferSize, boolean useNativeAllocateBB,
-                         boolean forcePinned, boolean numa) {
+                            boolean forcePinned, boolean numa) {
         this.directBufferSize = directBufferSize;
         if (useNativeAllocateBB) {
             LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
@@ -149,6 +141,14 @@ public class QatCompressorJNI {
     public QatCompressorJNI() {
         this(DEFAULT_DIRECT_BUFFER_SIZE);
     }
+
+    public static boolean isNativeCodeLoaded() {
+        return nativeQatLoaded;
+    }
+
+    private native static void initIDs(int level);
+
+    public native static String getLibraryName();
 
     /**
      * Sets input data for compression.
@@ -344,11 +344,7 @@ public class QatCompressorJNI {
     public synchronized void end() {
     }
 
-    private native static void initIDs(int level);
-
     private native int compressBytesDirect();
-
-    public native static String getLibraryName();
 
     public native Object nativeAllocateBB(long capacity, boolean numa,
                                           boolean forcePinned);

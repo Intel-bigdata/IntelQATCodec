@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,16 +17,14 @@
  */
 package com.intel.qat.jni;
 
+import com.intel.qat.conf.QatConfigurationKeys;
+import com.intel.qat.util.QatNativeCodeLoader;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-
-import com.intel.qat.conf.QatConfigurationKeys;
-import com.intel.qat.util.QatNativeCodeLoader;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 /**
  * @author root
@@ -37,20 +35,11 @@ import org.apache.log4j.Logger;
 public class QatDecompressorJNI {
     private static final Logger LOG = LogManager.getLogger(QatDecompressorJNI.class.getName());
 
-    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 64 * 1024;
+    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 640 * 1024;
 
     // HACK - Use this as a global lock in the JNI layer
     @SuppressWarnings({"rawtypes"})
     private static Class clazz = QatDecompressorJNI.class;
-
-    private int directBufferSize;
-    private Buffer compressedDirectBuf = null;
-    private int compressedDirectBufLen;
-    private Buffer uncompressedDirectBuf = null;
-    private byte[] userBuf = null;
-    private int userBufOff = 0, userBufLen = 0;
-    private boolean finished;
-
     private static boolean nativeQatLoaded = false;
 
     static {
@@ -65,21 +54,24 @@ public class QatDecompressorJNI {
         }
     }
 
-    public static boolean isNativeCodeLoaded() {
-        return nativeQatLoaded;
-    }
+    private int directBufferSize;
+    private Buffer compressedDirectBuf = null;
+    private int compressedDirectBufLen;
+    private Buffer uncompressedDirectBuf = null;
+    private byte[] userBuf = null;
+    private int userBufOff = 0, userBufLen = 0;
+    private boolean finished;
 
     /**
      * Creates a new decompressor.
      *
-     * @param directBufferSize
-     *          size of the direct buffer to be used.
+     * @param directBufferSize    size of the direct buffer to be used.
      * @param useNativeAllocateBB
      * @param forcePinned
      * @param numa
      */
     public QatDecompressorJNI(int directBufferSize, boolean useNativeAllocateBB,
-                           boolean forcePinned, boolean numa) {
+                              boolean forcePinned, boolean numa) {
         this.directBufferSize = directBufferSize;
         if (useNativeAllocateBB) {
             LOG.info("Creating ByteBuffer's using nativeAllocateBB.");
@@ -127,6 +119,12 @@ public class QatDecompressorJNI {
         this(DEFAULT_DIRECT_BUFFER_SIZE);
     }
 
+    public static boolean isNativeCodeLoaded() {
+        return nativeQatLoaded;
+    }
+
+    private native static void initIDs();
+
     /**
      * Sets input data for decompression.
      * This should be called if and only if {@link #needsInput()} returns
@@ -159,12 +157,6 @@ public class QatDecompressorJNI {
         // Reinitialize qat's output direct-buffer
         uncompressedDirectBuf.limit(directBufferSize);
         uncompressedDirectBuf.position(directBufferSize);
-
-        System.out.println("-------------> the result in the setInput is :<-------------------");
-       // System.out.println("the content in the userBuf is: " + Arrays.toString(this.userBuf));
-        System.out.println("the userBufOff is : " + this.userBufOff);
-        System.out.println("the userBufLen is : " + this.userBufLen);
-        System.out.println("----------------end of the setInput ---------------------");
     }
 
     /**
@@ -199,8 +191,8 @@ public class QatDecompressorJNI {
      * provide more input.
      *
      * @return <code>true</code> if the input data buffer is empty and
-     *         {@link #setInput(byte[], int, int)} should be called in
-     *         order to provide more input.
+     * {@link #setInput(byte[], int, int)} should be called in
+     * order to provide more input.
      */
 
     public boolean needsInput() {
@@ -257,10 +249,6 @@ public class QatDecompressorJNI {
     public int decompress(byte[] b, int off, int len)
             throws IOException {
 
-        System.out.println("------------go into the decompress ----------------");
-       // System.out.println("the byte[] need to be decompressed is : " + Arrays.toString(b));
-        System.out.println("the content in compressedBuffer is : \n"+ compressedDirectBuf);
-        System.out.println("the content in uncompressedDirectBuf is : \n" + uncompressedDirectBuf);
         if (b == null) {
             throw new NullPointerException();
         }
@@ -282,26 +270,8 @@ public class QatDecompressorJNI {
             uncompressedDirectBuf.rewind();
             uncompressedDirectBuf.limit(directBufferSize);
 
-            System.out.println("the capacity of  compressedDirectBuf is : " + this.compressedDirectBuf.capacity());
-            System.out.println("the position of compressedDirectBuf is : " + this.compressedDirectBuf.position());
-            System.out.println("the limit of the compressedDirectBuf is : " + this.compressedDirectBuf.limit());
-
-
-            System.out.println("the capacity of  uncompressedDirectBuf is : " + this.uncompressedDirectBuf.capacity());
-            System.out.println("the position of uncompressedDirectBuf is : " + this.uncompressedDirectBuf.position());
-            System.out.println("the limit of the uncompressedDirectBuf is : " + this.uncompressedDirectBuf.limit());
-            System.out.println("the off of userBuf is :" + this.userBufOff);
-            System.out.println("the len of the userBuf is  : " + this.userBufLen);
-            System.out.println("----------->next step is using the native function :");
-
             // Decompress data
             n = decompressBytesDirect();
-
-            System.out.println("----------------end of using native func");
-
-            System.out.println("the capacity of  compressedDirectBuf is : " + this.compressedDirectBuf.capacity());
-            System.out.println("the position of compressedDirectBuf is : " + this.compressedDirectBuf.position());
-            System.out.println("the limit of the compressedDirectBuf is : " + this.compressedDirectBuf.limit());
 
             uncompressedDirectBuf.limit(n);
 
@@ -313,10 +283,8 @@ public class QatDecompressorJNI {
             n = Math.min(n, len);
             ((ByteBuffer) uncompressedDirectBuf).get(b, off, n);
 
-            System.out.println("-------------go out of the condition compressedDirectBufLen");
         }
 
-        System.out.println("-----------------go out of the decompress --------------");
         return n;
     }
 
@@ -330,7 +298,6 @@ public class QatDecompressorJNI {
         // Never use this function in BlockDecompressorStream.
         return 0;
     }
-
 
     public void reset() {
         finished = false;
@@ -346,13 +313,7 @@ public class QatDecompressorJNI {
      */
     public void end() {
         // do nothing
-        reset();
-       /* if(finished()){
-            reset();
-        }*/
     }
-
-    private native static void initIDs();
 
     private native int decompressBytesDirect();
 
