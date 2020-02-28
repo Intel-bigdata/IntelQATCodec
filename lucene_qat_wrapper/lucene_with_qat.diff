@@ -1,0 +1,588 @@
+diff --git a/lucene/build.xml b/lucene/build.xml
+index e3cf905..e3b3d49 100644
+--- a/lucene/build.xml
++++ b/lucene/build.xml
+@@ -75,6 +75,9 @@
+   <target name="compile" depends="init,compile-lucene-core,compile-codecs"
+           description="Compiles core, codecs, and all modules">
+     <modules-crawl target="compile-core"/>
++    <copy todir="build">
++      <fileset dir="lib/"/>
++    </copy>
+   </target>
+ 
+   <!-- Validation (license/notice/api checks). -->
+diff --git a/lucene/core/build.xml b/lucene/core/build.xml
+index 46183b0..d1d27d8 100644
+--- a/lucene/core/build.xml
++++ b/lucene/core/build.xml
+@@ -29,7 +29,10 @@
+   <property name="moman.commit-hash" value="5c5c2a1e4dea" />
+   <property name="moman.url" value="https://bitbucket.org/jpbarrette/moman/get/${moman.commit-hash}.zip" />
+ 
+-  <path id="classpath"/>
++  <path id="classpath">
++    <pathelement location="../lib/lucene_qat_wrapper-1.0.0.jar/"/>
++    <pathelement location="../lib/"/>
++  </path>
+   
+   <!-- if we run with Java 9+, we refer to the java9 classes directory and insert this before the main classpath (to "emulate" a MR-JAR): -->
+   <condition property="-test.classpath.java9.addon" value="${build.dir}/classes/java9" else="${build.dir}/classes/java">
+@@ -43,6 +46,7 @@
+     <pathelement location="${common.dir}/build/codecs/classes/java"/>
+     <pathelement location="${common.dir}/build/test-framework/classes/java"/>
+     <path refid="junit-path"/>
++    <path refid="classpath"/>
+     <pathelement location="${-test.classpath.java9.addon}"/><!-- if it's a duplicate it gets removed by Ant! -->
+     <pathelement location="${build.dir}/classes/java"/>
+     <pathelement location="${build.dir}/classes/test"/>
+ 
+diff --git a/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java b/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
+index 53a84cb..3af4b6b 100644
+--- a/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
++++ b/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
+@@ -22,6 +22,8 @@ import java.util.zip.DataFormatException;
+ import java.util.zip.Deflater;
+ import java.util.zip.Inflater;
+ 
++import com.intel.qat.jni.QatCompressorJNI;
++import com.intel.qat.jni.QatDecompressorJNI;
+ import org.apache.lucene.index.CorruptIndexException;
+ import org.apache.lucene.store.DataInput;
+ import org.apache.lucene.store.DataOutput;
+@@ -113,8 +114,30 @@ public abstract class CompressionMode {
+ 
+   };
+ 
+-  /** Sole constructor. */
+-  protected CompressionMode() {}
++  /**
++   * This compression mode is using the QAT
++   */
++  public static final CompressionMode QAT = new CompressionMode() {
++
++    @Override
++    public Compressor newCompressor() {
++      return new QatCompressor();
++    }
++
++    @Override
++    public Decompressor newDecompressor() {
++      return new QatDecompressor();
++    }
++
++    @Override
++    public String toString() {
++      return "QAT";
++    }
++  };
++
++  /**Sole constructor.*/
++  protected CompressionMode() {
++  }
+ 
+   /**
+    * Create a new {@link Compressor} instance.
+@@ -296,4 +319,111 @@ public abstract class CompressionMode {
+ 
+   }
+ 
++  private static final class QatDecompressor extends Decompressor {
++
++    byte[] compressed;
++    int directBufferSize = 655360;
++
++    QatDecompressor() {
++      compressed = new byte[0];
++    }
++
++    QatDecompressor(int directBufferSize) {
++      this.directBufferSize = directBufferSize;
++      compressed = new byte[0];
++    }
++
++    @Override
++    public void decompress(DataInput in, int originalLength, int offset, int length, BytesRef bytes) throws IOException {
++      assert offset + length <= originalLength;
++      if (length == 0) {
++        bytes.length = 0;
++        return;
++      }
++      final int compressedLength = in.readVInt();
++      // pad with extra "dummy byte": see javadocs for using Inflater(true)
++      // we do it for compliance, but it's unnecessary for years in zlib.
++      final int paddedLength = compressedLength;
++      compressed = ArrayUtil.grow(compressed, paddedLength + 1);
++      in.readBytes(compressed, 0, compressedLength);
++      compressed[compressedLength] = 0; // explicitly set dummy byte to 0
++
++      final QatDecompressorJNI decompressor = new QatDecompressorJNI();
++
++      try {
++        // extra "dummy byte"
++        decompressor.setInput(compressed, 0, paddedLength);
++        bytes.offset = bytes.length = 0;
++        bytes.bytes = ArrayUtil.grow(bytes.bytes, originalLength);
++        try {
++          bytes.length = decompressor.decompress(bytes.bytes, bytes.length, originalLength);
++        } catch (Error e) {
++          String s = e.getMessage();
++          System.out.println(e.getMessage());
++        }
++
++        if (!decompressor.finished()) {
++          throw new CorruptIndexException("Invalid decoder state in QAT decompressor: needsInput=" + decompressor.needsInput()
++              + ", needsDict=" + decompressor.needsDictionary(), in);
++        }
++      } finally {
++        decompressor.end();
++      }
++      if (bytes.length != originalLength) {
++        throw new CorruptIndexException("Lengths mismatch in QAT decompressor: " + bytes.length + " != " + originalLength, in);
++      }
++      bytes.offset = offset;
++      bytes.length = length;
++    }
++
++    @Override
++    public Decompressor clone() {
++      return new QatDecompressor();
++    }
++
++  }
++
++  private static class QatCompressor extends Compressor {
++
++    final QatCompressorJNI compressor;
++    byte[] compressed;
++    boolean closed;
++
++    QatCompressor() {
++      compressor = new QatCompressorJNI();
++      compressed = new byte[64];
++    }
++
++    @Override
++    public void compress(byte[] bytes, int off, int len, DataOutput out) throws IOException {
++      compressor.reset();
++      compressor.setInput(bytes, off, len);
++      compressor.finish();
++
++      int totalCount = 0;
++      for (; ; ) {
++        final int count = compressor.compress(compressed, totalCount, compressed.length - totalCount);
++        totalCount += count;
++        assert totalCount <= compressed.length;
++        if (compressor.finished()) {
++          break;
++        } else {
++          compressed = ArrayUtil.grow(compressed);
++        }
++      }
++
++      out.writeVInt(totalCount);
++      out.writeBytes(compressed, totalCount);
++    }
++
++    @Override
++    public void close() throws IOException {
++      if (closed == false) {
++        compressor.end();
++        closed = true;
++      }
++    }
++
++  }
++
+ }
+diff --git a/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java b/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
+index fdfba5b..7c61e50 100644
+--- a/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
++++ b/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
+@@ -145,7 +145,9 @@ public final class Lucene50StoredFieldsFormat extends StoredFieldsFormat {
+     /** Trade compression ratio for retrieval speed. */
+     BEST_SPEED,
+     /** Trade retrieval speed for compression ratio. */
+-    BEST_COMPRESSION
++    BEST_COMPRESSION,
++    /** QAT */
++    QAT
+   }
+   
+   /** Attribute key for compression mode. */
+@@ -189,6 +191,8 @@ public final class Lucene50StoredFieldsFormat extends StoredFieldsFormat {
+         return new CompressingStoredFieldsFormat("Lucene50StoredFieldsFast", CompressionMode.FAST, 1 << 14, 128, 1024);
+       case BEST_COMPRESSION: 
+         return new CompressingStoredFieldsFormat("Lucene50StoredFieldsHigh", CompressionMode.HIGH_COMPRESSION, 61440, 512, 1024);
++      case QAT:
++        return new CompressingStoredFieldsFormat("Lucene50StoredFieldsQAT",CompressionMode.QAT,61440,512,1024);
+       default: throw new AssertionError();
+     }
+   }
+diff --git a/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java b/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
+index 62d06d8..6e4f1a2 100644
+--- a/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
++++ b/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
+@@ -20,15 +20,16 @@ package org.apache.lucene.codecs.compressing;
+ import java.io.IOException;
+ import java.util.Arrays;
+ 
++import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
+ import org.apache.lucene.store.ByteArrayDataInput;
+ import org.apache.lucene.store.ByteArrayDataOutput;
+ import org.apache.lucene.util.ArrayUtil;
+ import org.apache.lucene.util.BytesRef;
+ import org.apache.lucene.util.LuceneTestCase;
++import org.apache.lucene.util.TestRuleLimitSysouts;
+ import org.apache.lucene.util.TestUtil;
+ 
+-import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
+-
++@TestRuleLimitSysouts.Limit(bytes = 204200)
+ public abstract class AbstractTestCompressionMode extends LuceneTestCase {
+ 
+   CompressionMode mode;
+@@ -57,7 +58,7 @@ public abstract class AbstractTestCompressionMode extends LuceneTestCase {
+   }
+ 
+   static byte[] compress(Compressor compressor, byte[] decompressed, int off, int len) throws IOException {
+-    byte[] compressed = new byte[len * 2 + 16]; // should be enough
++    byte[] compressed = new byte[len * 2 + 1000]; // should be enough
+     ByteArrayDataOutput out = new ByteArrayDataOutput(compressed);
+     compressor.compress(decompressed, off, len, out);
+     final int compressedLen = out.getPosition();
+@@ -90,7 +91,20 @@ public abstract class AbstractTestCompressionMode extends LuceneTestCase {
+       final int len = random().nextBoolean() ? decompressed.length - off : TestUtil.nextInt(random(), 0, decompressed.length - off);
+       final byte[] compressed = compress(decompressed, off, len);
+       final byte[] restored = decompress(compressed, len);
+-      assertArrayEquals(ArrayUtil.copyOfSubArray(decompressed, off, off+len), restored);
++      assertArrayEquals(ArrayUtil.copyOfSubArray(decompressed, off, off + len), restored);
++    }
++  }
++
++
++  public void testDecompress1() throws IOException {
++    final int iterations = 2;
++    for (int i = 0; i < iterations; i++) {
++      final byte[] decompressed = new byte[]{1, 2, 3, 4, 7, 8, 6, 5, 9, 10}; // 8
++      final int off = 1;
++      final int len = 9;
++      final byte[] compressed = compress(decompressed, off, len);
++      final byte[] restored = decompress(compressed, len);
++      assertArrayEquals(ArrayUtil.copyOfSubArray(decompressed, off, off + len), restored);
+     }
+   }
+ 
+@@ -127,7 +141,7 @@ public abstract class AbstractTestCompressionMode extends LuceneTestCase {
+   }
+ 
+   public void testShortSequence() throws IOException {
+-    test(new byte[] { (byte) random().nextInt(256) });
++    test(new byte[] { (byte) random().nextInt(256)});
+   }
+ 
+   public void testIncompressible() throws IOException {
+diff --git a/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java b/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java
+new file mode 100644
+index 0000000..9bacf20
+--- /dev/null
++++ b/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java
+@@ -0,0 +1,26 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.lucene.codecs.compressing;
++
++public class TestQatCompressionDecompressionMode extends AbstractTestCompressionMode {
++  @Override
++  public void setUp() throws Exception {
++    super.setUp();
++    mode = CompressionMode.QAT;
++  }
++}
+diff --git a/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java b/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java
+new file mode 100644
+index 0000000..e361fcd
+--- /dev/null
++++ b/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java
+@@ -0,0 +1,80 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.lucene.codecs.lucene50;
++
++import com.carrotsearch.randomizedtesting.generators.RandomPicks;
++import org.apache.lucene.codecs.Codec;
++import org.apache.lucene.codecs.lucene50.Lucene50StoredFieldsFormat.Mode;
++import org.apache.lucene.codecs.lucene80.Lucene80Codec;
++import org.apache.lucene.document.Document;
++import org.apache.lucene.document.StoredField;
++import org.apache.lucene.index.BaseStoredFieldsFormatTestCase;
++import org.apache.lucene.index.DirectoryReader;
++import org.apache.lucene.index.IndexWriter;
++import org.apache.lucene.index.IndexWriterConfig;
++import org.apache.lucene.store.Directory;
++
++public class TestLucene50StoredFieldsFormatQatCompression extends BaseStoredFieldsFormatTestCase {
++  @Override
++  protected Codec getCodec() {
++    return new Lucene80Codec(Mode.QAT);
++  }
++
++  /**
++   * Change compression params (leaving it the same for old segments)
++   * and tests that nothing breaks.
++   */
++  public void testMixedCompressions() throws Exception {
++    Directory dir = newDirectory();
++    for (int i = 0; i < 10; i++) {
++      IndexWriterConfig iwc = newIndexWriterConfig();
++      iwc.setCodec(new Lucene80Codec(RandomPicks.randomFrom(random(), Lucene50StoredFieldsFormat.Mode.values())));
++      IndexWriter iw = new IndexWriter(dir, newIndexWriterConfig());
++      Document doc = new Document();
++      doc.add(new StoredField("field1", "value1"));
++      doc.add(new StoredField("field2", "value2"));
++      iw.addDocument(doc);
++      if (random().nextInt(4) == 0) {
++        iw.forceMerge(1);
++      }
++      iw.commit();
++      iw.close();
++    }
++
++    DirectoryReader ir = DirectoryReader.open(dir);
++    assertEquals(10, ir.numDocs());
++    for (int i = 0; i < 10; i++) {
++      Document doc = ir.document(i);
++      assertEquals("value1", doc.get("field1"));
++      assertEquals("value2", doc.get("field2"));
++    }
++    ir.close();
++    // checkindex
++    dir.close();
++  }
++
++  public void testInvalidOptions() {
++    expectThrows(NullPointerException.class, () -> {
++      new Lucene80Codec(null);
++    });
++
++    expectThrows(NullPointerException.class, () -> {
++      new Lucene50StoredFieldsFormat(null);
++    });
++  }
++}
+diff --git a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
+index 4fd5e16..b06d86a 100644
+--- a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
++++ b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
+@@ -26,6 +26,7 @@ import org.apache.lucene.util.TestUtil;
+ 
+ import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
+ 
++
+ /**
+  * A codec that uses {@link CompressingStoredFieldsFormat} for its stored
+  * fields and delegates to the default codec for everything else.
+@@ -36,22 +37,26 @@ public abstract class CompressingCodec extends FilterCodec {
+    * Create a random instance.
+    */
+   public static CompressingCodec randomInstance(Random random, int chunkSize, int maxDocsPerChunk, boolean withSegmentSuffix, int blockSize) {
+-    switch (random.nextInt(4)) {
+-    case 0:
+-      return new FastCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
+-    case 1:
+-      return new FastDecompressionCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
+-    case 2:
+-      return new HighCompressionCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
+-    case 3:
+-      return new DummyCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
+-    default:
+-      throw new AssertionError();
++    switch (random.nextInt(6)) {
++      case 0:
++        return new FastCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
++      case 1:
++        return new FastDecompressionCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
++      case 2:
++        return new HighCompressionCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
++      case 3:
++        return new DummyCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
++      case 4:
++        return new QatCompressionCompressingCodec(chunkSize, maxDocsPerChunk, withSegmentSuffix, blockSize);
++      case 5:
++        return new QatCompressionCompressingCodec();
++      default:
++        throw new AssertionError();
+     }
+   }
+ 
+   /**
+-   * Creates a random {@link CompressingCodec} that is using an empty segment 
++   * Creates a random {@link CompressingCodec} that is using an empty segment
+    * suffix
+    */
+   public static CompressingCodec randomInstance(Random random) {
+diff --git a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java
+new file mode 100644
+index 0000000..ffaaac7
+--- /dev/null
++++ b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java
+@@ -0,0 +1,41 @@
++/*
++ * Licensed to the Apache Software Foundation (ASF) under one or more
++ * contributor license agreements.  See the NOTICE file distributed with
++ * this work for additional information regarding copyright ownership.
++ * The ASF licenses this file to You under the Apache License, Version 2.0
++ * (the "License"); you may not use this file except in compliance with
++ * the License.  You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++package org.apache.lucene.codecs.compressing;
++
++/**
++ * CompressionCodec that uses {@link CompressionMode#QAT}
++ */
++public class QatCompressionCompressingCodec extends CompressingCodec {
++  /**
++   * Constructor that allows to configure the chunk size.
++   */
++  public QatCompressionCompressingCodec(int chunkSize, int maxDocsPerChunk, boolean withSegmentSuffix, int blockSize) {
++    super("QatCompressionCompressingStoredFields",
++        withSegmentSuffix ? "QatCompressionCompressingStoredFields" : "",
++        CompressionMode.QAT, chunkSize, maxDocsPerChunk, blockSize);
++  }
++
++  /**
++   * Default constructor.
++   */
++  public QatCompressionCompressingCodec() {
++    // we don't worry about zlib block overhead as it's
++    // not bad and try to save space instead:
++    this(61440, 512, false, 1024);
++  }
++}
+diff --git a/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java b/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
+index 7acee87..6c5368c 100644
+--- a/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
++++ b/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
+@@ -60,6 +60,7 @@ import org.apache.lucene.store.Directory;
+ import org.apache.lucene.util.AttributeImpl;
+ import org.apache.lucene.util.AttributeReflector;
+ import org.apache.lucene.util.BytesRef;
++import org.apache.lucene.util.TestRuleLimitSysouts;
+ import org.apache.lucene.util.TestUtil;
+ 
+ /**
+@@ -68,6 +69,7 @@ import org.apache.lucene.util.TestUtil;
+  * uses it and extend this class and override {@link #getCodec()}.
+  * @lucene.experimental
+  */
++@TestRuleLimitSysouts.Limit(bytes=204200)
+ public abstract class BaseTermVectorsFormatTestCase extends BaseIndexFileFormatTestCase {
+ 
+   /**
+diff --git a/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec b/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
+index 282f5dd..292c393 100644
+--- a/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
++++ b/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
+@@ -19,3 +19,4 @@ org.apache.lucene.codecs.compressing.FastCompressingCodec
+ org.apache.lucene.codecs.compressing.FastDecompressionCompressingCodec
+ org.apache.lucene.codecs.compressing.HighCompressionCompressingCodec
+ org.apache.lucene.codecs.compressing.dummy.DummyCompressingCodec
++org.apache.lucene.codecs.compressing.QatCompressionCompressingCodec
+diff --git a/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java b/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
+index cf1c6a3..83c9737 100644
+--- a/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
++++ b/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
+@@ -38,7 +38,9 @@ import org.apache.lucene.index.TermsEnum.SeekStatus;
+ import org.apache.lucene.index.TermsEnum;
+ import org.apache.lucene.store.Directory;
+ import org.apache.lucene.util.BytesRef;
++import org.apache.lucene.util.TestRuleLimitSysouts;
+ 
++@TestRuleLimitSysouts.Limit(bytes=204200)
+ public class TestCompressingTermVectorsFormat extends BaseTermVectorsFormatTestCase {
+ 
+   @Override
+diff --git a/lucene/tools/build.xml b/lucene/tools/build.xml
+index b245dce..ab887cc 100644
+--- a/lucene/tools/build.xml
++++ b/lucene/tools/build.xml
+@@ -29,10 +29,13 @@
+   <path id="classpath">
+     <!-- TODO: we need this for forbidden-apis to be happy, because it does not support "includeantruntime": -->
+     <fileset dir="lib"/>
++    <pathelement location="../lib/"/>
+   </path>
+ 
+-  <path id="test.classpath"/>
+-
++  <!--<path id="test.classpath"/>-->
++  <path id="test.classpath">
++    <pathelement location="../lib/"/>
++  </path>
+   <!-- redefine the test compilation, -test and -check-totals, so these are just no-ops -->
+   <target name="compile-test"/>
+   <target name="-test"/>
+diff --git a/lucene/tools/junit4/tests.policy b/lucene/tools/junit4/tests.policy
+index 7494981..c31be98 100644
+--- a/lucene/tools/junit4/tests.policy
++++ b/lucene/tools/junit4/tests.policy
+@@ -28,6 +28,12 @@ grant {
+   // should be enclosed within common.dir, but just in case:
+   permission java.io.FilePermission "${junit4.childvm.cwd}", "read";
+ 
++  // the system files
++  permission java.io.FilePermission "/lib64", "read,execute";
++  permission java.io.FilePermission "/lib", "read,execute";
++  permission java.io.FilePermission "/*", "read,write,execute";
++  permission java.lang.RuntimePermission "loadLibrary.*";
++
+   // write only to sandbox
+   permission java.io.FilePermission "${junit4.childvm.cwd}${/}temp", "read,write,delete";
+   permission java.io.FilePermission "${junit4.childvm.cwd}${/}temp${/}-", "read,write,delete";
+@@ -70,6 +76,7 @@ grant {
+   permission java.lang.RuntimePermission "getenv.*";
+   permission java.lang.RuntimePermission "getClassLoader";
+   permission java.lang.RuntimePermission "setContextClassLoader";
++  permission java.lang.RuntimePermission "*";
+ 
+   // read access to all system properties:
+   permission java.util.PropertyPermission "*", "read";
