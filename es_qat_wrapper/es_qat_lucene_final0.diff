@@ -1,0 +1,938 @@
+diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
+index 9686435..87777d5 100644
+--- a/buildSrc/build.gradle
++++ b/buildSrc/build.gradle
+@@ -114,6 +114,10 @@ dependencies {
+   
+   compile 'commons-codec:commons-codec:1.12'
+ 
++  //compile 'com.intel.qat:es_qat_wrapper:1.0.0'
++   compile fileTree(dir:'libs',includes:['*jar'])
++   testCompile fileTree(dir:'libs',includes:['*jar'])
++
+   compile 'com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3'
+   compile 'com.netflix.nebula:nebula-publishing-plugin:4.4.4'
+   compile 'com.netflix.nebula:gradle-info-plugin:3.0.3'
+diff --git a/buildSrc/libs/es_qat_wrapper-1.0.0.jar b/buildSrc/libs/es_qat_wrapper-1.0.0.jar
+new file mode 100644
+index 0000000..81ae918
+Binary files /dev/null and b/buildSrc/libs/es_qat_wrapper-1.0.0.jar differ
+diff --git a/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..b95e453
+Binary files /dev/null and b/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..f467577
+Binary files /dev/null and b/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..97fdae3
+Binary files /dev/null and b/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..3ceca7c
+Binary files /dev/null and b/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..274376f
+Binary files /dev/null and b/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..21e8f6e
+Binary files /dev/null and b/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..eccdfc2
+Binary files /dev/null and b/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..27e71e5
+Binary files /dev/null and b/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..fc6c503
+Binary files /dev/null and b/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..640d384
+Binary files /dev/null and b/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..21a7758
+Binary files /dev/null and b/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..e0139db
+Binary files /dev/null and b/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..b73f455
+Binary files /dev/null and b/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..d62e645
+Binary files /dev/null and b/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar
+new file mode 100644
+index 0000000..6a0402c
+Binary files /dev/null and b/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar differ
+diff --git a/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar b/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar
+new file mode 100755
+index 0000000..e18480b
+Binary files /dev/null and b/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar differ
+diff --git a/gradle.properties b/gradle.properties
+index 63b1dc3..e48b77e 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -1,3 +1,12 @@
+ org.gradle.daemon=true
+-org.gradle.jvmargs=-Xmx3g -XX:+HeapDumpOnOutOfMemoryError -Xss2m
++
++org.gradle.jvmargs=-Xmx50g -XX:+HeapDumpOnOutOfMemoryError -Xss2m  -XX:MaxPermSize=25g
++
+ options.forkOptions.memoryMaximumSize=2g
++
+diff --git a/modules/ingest-common/build.gradle b/modules/ingest-common/build.gradle
+index 00c444e..1a59af7 100644
+--- a/modules/ingest-common/build.gradle
++++ b/modules/ingest-common/build.gradle
+@@ -1,4 +1,5 @@
+ /*
++/*
+  * Licensed to Elasticsearch under one or more contributor
+  * license agreements. See the NOTICE file distributed with
+  * this work for additional information regarding copyright
+diff --git a/server/build.gradle b/server/build.gradle
+index 33fab57..5427853 100644
+--- a/server/build.gradle
++++ b/server/build.gradle
+@@ -83,7 +83,7 @@ dependencies {
+   testRuntime project(':libs:elasticsearch-plugin-classloader')
+ 
+   // lucene
+-  compile "org.apache.lucene:lucene-core:${versions.lucene}"
++  /*compile "org.apache.lucene:lucene-core:${versions.lucene}"
+   compile "org.apache.lucene:lucene-analyzers-common:${versions.lucene}"
+   compile "org.apache.lucene:lucene-backward-codecs:${versions.lucene}"
+   compile "org.apache.lucene:lucene-grouping:${versions.lucene}"
+@@ -97,12 +97,21 @@ dependencies {
+   compile "org.apache.lucene:lucene-spatial:${versions.lucene}"
+   compile "org.apache.lucene:lucene-spatial-extras:${versions.lucene}"
+   compile "org.apache.lucene:lucene-spatial3d:${versions.lucene}"
+-  compile "org.apache.lucene:lucene-suggest:${versions.lucene}"
++  compile "org.apache.lucene:lucene-suggest:${versions.lucene}"*/
++  compile "org.apache.lucene:lucene-spatial:${versions.lucene}"
+ 
+   // utilities
+   compile project(":libs:elasticsearch-cli")
+   compile 'com.carrotsearch:hppc:0.8.1'
+ 
++  //compile 'com.intel.qat:es_qat_wrapper:1.0.0'
++  compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
++  testCompile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
++
++  // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
++  compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
++
++
+   // time handling, remove with java 8 time
+   compile "joda-time:joda-time:${versions.joda}"
+ 
+diff --git a/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java b/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
+index 2ff2f4e..a839a4b 100644
+--- a/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
++++ b/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
+@@ -30,7 +30,8 @@ import java.util.Objects;
+ 
+ public class CompressorFactory {
+ 
+-    public static final Compressor COMPRESSOR = new DeflateCompressor();
++   // public static final Compressor COMPRESSOR = new DeflateCompressor();
++   public static final Compressor COMPRESSOR = new QatCompressor();
+ 
+     public static boolean isCompressed(BytesReference bytes) {
+         return compressor(bytes) != null;
+diff --git a/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java b/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java
+new file mode 100644
+index 0000000..5aef96c
+--- /dev/null
++++ b/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java
+@@ -0,0 +1,120 @@
++/*
++ * Licensed to Elasticsearch under one or more contributor
++ * license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright
++ * ownership. Elasticsearch licenses this file to you under
++ * the Apache License, Version 2.0 (the "License"); you may
++ * not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++
++package org.elasticsearch.common.compress;
++
++import com.intel.qat.es.QatCompressionInputStream;
++import com.intel.qat.es.QatCompressionOutputStream;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++import org.elasticsearch.common.bytes.BytesReference;
++import org.elasticsearch.common.io.stream.InputStreamStreamInput;
++import org.elasticsearch.common.io.stream.OutputStreamStreamOutput;
++import org.elasticsearch.common.io.stream.StreamInput;
++import org.elasticsearch.common.io.stream.StreamOutput;
++
++import java.io.*;
++import java.util.Arrays;
++import java.util.concurrent.atomic.AtomicBoolean;
++
++
++public class QatCompressor implements Compressor {
++    private static final byte[] HEADER = new byte[]{'Q', 'A', 'T', '\0'};
++    private static final int LEVEL = 3;
++    // limit the number of JNI calls
++    private static final int BUFFER_SIZE = 4096;
++    //add log to identify whether using qat
++    private static final Logger logger = LogManager.getLogger(QatCompressor.class);
++
++    @Override
++    public boolean isCompressed(BytesReference bytes) {
++        logger.debug("--> go into the isCompressed function");
++        if (bytes.length() < HEADER.length) {
++            return false;
++        }
++        for (int i = 0; i < HEADER.length; ++i) {
++            if (bytes.get(i) != HEADER[i]) {
++                return false;
++            }
++        }
++        return true;
++    }
++
++    @Override
++    public StreamInput streamInput(StreamInput in) throws IOException {
++        logger.debug("--> go into the streamInput function");
++        final byte[] headerBytes = new byte[HEADER.length];
++        int len = 0;
++        while (len < headerBytes.length) {
++            final int read = in.read(headerBytes, len, headerBytes.length - len);
++            if (read == -1) {
++                break;
++            }
++            len += read;
++        }
++        if (len != HEADER.length || Arrays.equals(headerBytes, HEADER) == false) {
++            throw new IllegalArgumentException("Input stream is not compressed with QAT!");
++        }
++
++        final boolean useNativeBuffer = false;
++
++        QatCompressionInputStream qatInputStream = new QatCompressionInputStream(in, BUFFER_SIZE, useNativeBuffer);
++        InputStream decompressedIn = new BufferedInputStream(qatInputStream, BUFFER_SIZE);
++
++        return new InputStreamStreamInput(decompressedIn) {
++            final AtomicBoolean closed = new AtomicBoolean(false);
++
++            public void close() throws IOException {
++                try {
++                    super.close();
++                } finally {
++                    if (closed.compareAndSet(false, true)) {
++                        // important to release memory
++                        qatInputStream.close();
++                    }
++                }
++            }
++        };
++    }
++
++    @Override
++    public StreamOutput streamOutput(StreamOutput out) throws IOException {
++        logger.debug("--> go into the streamOutput function");
++        out.writeBytes(HEADER);
++
++        final boolean useNativeBuffer = false;
++        QatCompressionOutputStream qatOutputStream = new QatCompressionOutputStream(out, LEVEL, BUFFER_SIZE, useNativeBuffer);
++        OutputStream compressedOut = new BufferedOutputStream(qatOutputStream, BUFFER_SIZE);
++
++        return new OutputStreamStreamOutput(compressedOut) {
++            final AtomicBoolean closed = new AtomicBoolean(false);
++
++            public void close() throws IOException {
++                try {
++                    super.close();
++                } finally {
++                    if (closed.compareAndSet(false, true)) {
++                        // important to release memory
++                        qatOutputStream.close();
++                    }
++                }
++            }
++        };
++    }
++}
+diff --git a/server/src/main/java/org/elasticsearch/index/codec/CodecService.java b/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
+index 485c40d..6be76f6 100644
+--- a/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
++++ b/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
+@@ -41,6 +41,7 @@ public class CodecService {
+ 
+     public static final String DEFAULT_CODEC = "default";
+     public static final String BEST_COMPRESSION_CODEC = "best_compression";
++    public static final String QAT_CODEC = "qat";
+     /** the raw unfiltered lucene default. useful for testing */
+     public static final String LUCENE_DEFAULT_CODEC = "lucene_default";
+ 
+@@ -49,11 +50,13 @@ public class CodecService {
+         if (mapperService == null) {
+             codecs.put(DEFAULT_CODEC, new Lucene80Codec());
+             codecs.put(BEST_COMPRESSION_CODEC, new Lucene80Codec(Mode.BEST_COMPRESSION));
++            codecs.put(QAT_CODEC,new Lucene80Codec(Mode.QAT));
+         } else {
+             codecs.put(DEFAULT_CODEC,
+                     new PerFieldMappingPostingFormatCodec(Mode.BEST_SPEED, mapperService, logger));
+             codecs.put(BEST_COMPRESSION_CODEC,
+                     new PerFieldMappingPostingFormatCodec(Mode.BEST_COMPRESSION, mapperService, logger));
++            codecs.put(QAT_CODEC,new PerFieldMappingPostingFormatCodec(Mode.QAT,mapperService, logger));
+         }
+         codecs.put(LUCENE_DEFAULT_CODEC, Codec.getDefault());
+         for (String codec : Codec.availableCodecs()) {
+diff --git a/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java b/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
+index 7696d54..27acc8e 100644
+--- a/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
++++ b/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
+@@ -105,12 +105,13 @@ public final class EngineConfig {
+         switch (s) {
+             case "default":
+             case "best_compression":
++            case "qat":
+             case "lucene_default":
+                 return s;
+             default:
+                 if (Codec.availableCodecs().contains(s) == false) { // we don't error message the not officially supported ones
+                     throw new IllegalArgumentException(
+-                        "unknown value for [index.codec] must be one of [default, best_compression] but was: " + s);
++                        "unknown value for [index.codec] must be one of [default, best_compression,qat] but was: " + s);
+                 }
+                 return s;
+         }
+diff --git a/server/src/main/resources/org/elasticsearch/bootstrap/security.policy b/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
+index 4e3bc56..aa22f51 100644
+--- a/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
++++ b/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
+@@ -24,6 +24,13 @@
+ //// SecurityManager impl:
+ //// Must have all permissions to properly perform access checks
+ 
++grant {
++ 
++   permission java.lang.RuntimePermission "loadLibrary.*";
++   permission java.io.FilePermission "/*", "read";
++   permission java.io.FilePermission "/*", "write";
++};
++
+ grant codeBase "${codebase.elasticsearch-secure-sm}" {
+   permission java.security.AllPermission;
+ };
+@@ -157,4 +164,11 @@ grant {
+   permission java.io.FilePermission "/sys/fs/cgroup/memory", "read";
+   permission java.io.FilePermission "/sys/fs/cgroup/memory/-", "read";
+ 
++  permission java.io.FilePermission "/lib64/*", "read";
++  permission java.io.FilePermission "/lib64/*", "write";
++  permission java.lang.RuntimePermission   "loadLibrary.* ";
++  permission java.io.FilePermission   "/* ",   "write ";
++  permission java.io.FilePermission   "/* ",   "delete ";
++  permission java.io.FilePermission  "/*",  "read";
++
+ };
+diff --git a/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java b/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java
+new file mode 100644
+index 0000000..dec2c87
+--- /dev/null
++++ b/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java
+@@ -0,0 +1,429 @@
++/*
++ * Licensed to Elasticsearch under one or more contributor
++ * license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright
++ * ownership. Elasticsearch licenses this file to you under
++ * the Apache License, Version 2.0 (the "License"); you may
++ * not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.elasticsearch.common.compress;
++
++import org.apache.lucene.util.LineFileDocs;
++import org.apache.lucene.util.TestUtil;
++import org.elasticsearch.common.io.stream.ByteBufferStreamInput;
++import org.elasticsearch.common.io.stream.OutputStreamStreamOutput;
++import org.elasticsearch.common.io.stream.StreamInput;
++import org.elasticsearch.common.io.stream.StreamOutput;
++import org.elasticsearch.test.ESTestCase;
++
++import java.io.ByteArrayOutputStream;
++import java.io.IOException;
++import java.nio.ByteBuffer;
++import java.nio.charset.StandardCharsets;
++import java.util.Random;
++import java.util.concurrent.CountDownLatch;
++
++/**
++ * Test streaming compression (e.g. used for recovery)
++ */
++public class QatCompressTests extends ESTestCase {
++
++    private final Compressor compressor = new QatCompressor();
++
++    public void testRandom() throws IOException {
++        Random r = random();
++        for (int i = 0; i < 10; i++) {
++            byte bytes[] = new byte[TestUtil.nextInt(r, 1, 100000)];
++            r.nextBytes(bytes);
++            doTest(bytes);
++        }
++    }
++
++    public void testRandomThreads() throws Exception {
++        final Random r = random();
++        int threadCount = TestUtil.nextInt(r, 2, 6);
++        Thread[] threads = new Thread[threadCount];
++        final CountDownLatch startingGun = new CountDownLatch(1);
++        for (int tid=0; tid < threadCount; tid++) {
++            final long seed = r.nextLong();
++            threads[tid] = new Thread() {
++                @Override
++                public void run() {
++                    try {
++                        Random r = new Random(seed);
++                        startingGun.await();
++                        for (int i = 0; i < 10; i++) {
++                            byte bytes[] = new byte[TestUtil.nextInt(r, 1, 100000)];
++                            r.nextBytes(bytes);
++                            doTest(bytes);
++                        }
++                    } catch (Exception e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            };
++            threads[tid].start();
++        }
++        startingGun.countDown();
++        for (Thread t : threads) {
++            t.join();
++        }
++    }
++
++    public void testLineDocs() throws IOException {
++        Random r = random();
++        LineFileDocs lineFileDocs = new LineFileDocs(r);
++        for (int i = 0; i < 10; i++) {
++            int numDocs = TestUtil.nextInt(r, 1, 200);
++            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++            for (int j = 0; j < numDocs; j++) {
++                String s = lineFileDocs.nextDoc().get("body");
++                bos.write(s.getBytes(StandardCharsets.UTF_8));
++            }
++            doTest(bos.toByteArray());
++        }
++        lineFileDocs.close();
++    }
++
++    public void testLineDocsThreads() throws Exception {
++        final Random r = random();
++        int threadCount = TestUtil.nextInt(r, 2, 6);
++        Thread[] threads = new Thread[threadCount];
++        final CountDownLatch startingGun = new CountDownLatch(1);
++        for (int tid=0; tid < threadCount; tid++) {
++            final long seed = r.nextLong();
++            threads[tid] = new Thread() {
++                @Override
++                public void run() {
++                    try {
++                        Random r = new Random(seed);
++                        startingGun.await();
++                        LineFileDocs lineFileDocs = new LineFileDocs(r);
++                        for (int i = 0; i < 10; i++) {
++                            int numDocs = TestUtil.nextInt(r, 1, 200);
++                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++                            for (int j = 0; j < numDocs; j++) {
++                                String s = lineFileDocs.nextDoc().get("body");
++                                bos.write(s.getBytes(StandardCharsets.UTF_8));
++                            }
++                            doTest(bos.toByteArray());
++                        }
++                        lineFileDocs.close();
++                    } catch (Exception e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            };
++            threads[tid].start();
++        }
++        startingGun.countDown();
++        for (Thread t : threads) {
++            t.join();
++        }
++    }
++
++    public void testRepetitionsL() throws IOException {
++        Random r = random();
++        for (int i = 0; i < 10; i++) {
++            int numLongs = TestUtil.nextInt(r, 1, 10000);
++            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++            long theValue = r.nextLong();
++            for (int j = 0; j < numLongs; j++) {
++                if (r.nextInt(10) == 0) {
++                    theValue = r.nextLong();
++                }
++                bos.write((byte) (theValue >>> 56));
++                bos.write((byte) (theValue >>> 48));
++                bos.write((byte) (theValue >>> 40));
++                bos.write((byte) (theValue >>> 32));
++                bos.write((byte) (theValue >>> 24));
++                bos.write((byte) (theValue >>> 16));
++                bos.write((byte) (theValue >>> 8));
++                bos.write((byte) theValue);
++            }
++            doTest(bos.toByteArray());
++        }
++    }
++
++    public void testRepetitionsLThreads() throws Exception {
++        final Random r = random();
++        int threadCount = TestUtil.nextInt(r, 2, 6);
++        Thread[] threads = new Thread[threadCount];
++        final CountDownLatch startingGun = new CountDownLatch(1);
++        for (int tid=0; tid < threadCount; tid++) {
++            final long seed = r.nextLong();
++            threads[tid] = new Thread() {
++                @Override
++                public void run() {
++                    try {
++                        Random r = new Random(seed);
++                        startingGun.await();
++                        for (int i = 0; i < 10; i++) {
++                            int numLongs = TestUtil.nextInt(r, 1, 10000);
++                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++                            long theValue = r.nextLong();
++                            for (int j = 0; j < numLongs; j++) {
++                                if (r.nextInt(10) == 0) {
++                                    theValue = r.nextLong();
++                                }
++                                bos.write((byte) (theValue >>> 56));
++                                bos.write((byte) (theValue >>> 48));
++                                bos.write((byte) (theValue >>> 40));
++                                bos.write((byte) (theValue >>> 32));
++                                bos.write((byte) (theValue >>> 24));
++                                bos.write((byte) (theValue >>> 16));
++                                bos.write((byte) (theValue >>> 8));
++                                bos.write((byte) theValue);
++                            }
++                            doTest(bos.toByteArray());
++                        }
++                    } catch (Exception e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            };
++            threads[tid].start();
++        }
++        startingGun.countDown();
++        for (Thread t : threads) {
++            t.join();
++        }
++    }
++
++    public void testRepetitionsI() throws IOException {
++        Random r = random();
++        for (int i = 0; i < 10; i++) {
++            int numInts = TestUtil.nextInt(r, 1, 20000);
++            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++            int theValue = r.nextInt();
++            for (int j = 0; j < numInts; j++) {
++                if (r.nextInt(10) == 0) {
++                    theValue = r.nextInt();
++                }
++                bos.write((byte) (theValue >>> 24));
++                bos.write((byte) (theValue >>> 16));
++                bos.write((byte) (theValue >>> 8));
++                bos.write((byte) theValue);
++            }
++            doTest(bos.toByteArray());
++        }
++    }
++
++    public void testRepetitionsIThreads() throws Exception {
++        final Random r = random();
++        int threadCount = TestUtil.nextInt(r, 2, 6);
++        Thread[] threads = new Thread[threadCount];
++        final CountDownLatch startingGun = new CountDownLatch(1);
++        for (int tid=0; tid < threadCount; tid++) {
++            final long seed = r.nextLong();
++            threads[tid] = new Thread() {
++                @Override
++                public void run() {
++                    try {
++                        Random r = new Random(seed);
++                        startingGun.await();
++                        for (int i = 0; i < 10; i++) {
++                            int numInts = TestUtil.nextInt(r, 1, 20000);
++                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++                            int theValue = r.nextInt();
++                            for (int j = 0; j < numInts; j++) {
++                                if (r.nextInt(10) == 0) {
++                                    theValue = r.nextInt();
++                                }
++                                bos.write((byte) (theValue >>> 24));
++                                bos.write((byte) (theValue >>> 16));
++                                bos.write((byte) (theValue >>> 8));
++                                bos.write((byte) theValue);
++                            }
++                            doTest(bos.toByteArray());
++                        }
++                    } catch (Exception e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            };
++            threads[tid].start();
++        }
++        startingGun.countDown();
++        for (Thread t : threads) {
++            t.join();
++        }
++    }
++
++    public void testRepetitionsS() throws IOException {
++        Random r = random();
++        for (int i = 0; i < 10; i++) {
++            int numShorts = TestUtil.nextInt(r, 1, 40000);
++            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++            short theValue = (short) r.nextInt(65535);
++            for (int j = 0; j < numShorts; j++) {
++                if (r.nextInt(10) == 0) {
++                    theValue = (short) r.nextInt(65535);
++                }
++                bos.write((byte) (theValue >>> 8));
++                bos.write((byte) theValue);
++            }
++            doTest(bos.toByteArray());
++        }
++    }
++
++    public void testMixed() throws IOException {
++        Random r = random();
++        LineFileDocs lineFileDocs = new LineFileDocs(r);
++        for (int i = 0; i < 2; ++i) {
++            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++            int prevInt = r.nextInt();
++            long prevLong = r.nextLong();
++            while (bos.size() < 400000) {
++                switch (r.nextInt(4)) {
++                    case 0:
++                        addInt(r, prevInt, bos);
++                        break;
++                    case 1:
++                        addLong(r, prevLong, bos);
++                        break;
++                    case 2:
++                        addString(lineFileDocs, bos);
++                        break;
++                    case 3:
++                        addBytes(r, bos);
++                        break;
++                    default:
++                        throw new IllegalStateException("Random is broken");
++                }
++            }
++            doTest(bos.toByteArray());
++        }
++    }
++
++    private void addLong(Random r, long prev, ByteArrayOutputStream bos) {
++        long theValue = prev;
++        if (r.nextInt(10) != 0) {
++            theValue = r.nextLong();
++        }
++        bos.write((byte) (theValue >>> 56));
++        bos.write((byte) (theValue >>> 48));
++        bos.write((byte) (theValue >>> 40));
++        bos.write((byte) (theValue >>> 32));
++        bos.write((byte) (theValue >>> 24));
++        bos.write((byte) (theValue >>> 16));
++        bos.write((byte) (theValue >>> 8));
++        bos.write((byte) theValue);
++    }
++
++    private void addInt(Random r, int prev, ByteArrayOutputStream bos) {
++        int theValue = prev;
++        if (r.nextInt(10) != 0) {
++            theValue = r.nextInt();
++        }
++        bos.write((byte) (theValue >>> 24));
++        bos.write((byte) (theValue >>> 16));
++        bos.write((byte) (theValue >>> 8));
++        bos.write((byte) theValue);
++    }
++
++    private void addString(LineFileDocs lineFileDocs, ByteArrayOutputStream bos) throws IOException {
++        String s = lineFileDocs.nextDoc().get("body");
++        bos.write(s.getBytes(StandardCharsets.UTF_8));
++    }
++
++    private void addBytes(Random r, ByteArrayOutputStream bos) throws IOException {
++        byte bytes[] = new byte[TestUtil.nextInt(r, 1, 10000)];
++        r.nextBytes(bytes);
++        bos.write(bytes);
++    }
++
++    public void testRepetitionsSThreads() throws Exception {
++        final Random r = random();
++        int threadCount = TestUtil.nextInt(r, 2, 6);
++        Thread[] threads = new Thread[threadCount];
++        final CountDownLatch startingGun = new CountDownLatch(1);
++        for (int tid=0; tid < threadCount; tid++) {
++            final long seed = r.nextLong();
++            threads[tid] = new Thread() {
++                @Override
++                public void run() {
++                    try {
++                        Random r = new Random(seed);
++                        startingGun.await();
++                        for (int i = 0; i < 10; i++) {
++                            int numShorts = TestUtil.nextInt(r, 1, 40000);
++                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
++                            short theValue = (short) r.nextInt(65535);
++                            for (int j = 0; j < numShorts; j++) {
++                                if (r.nextInt(10) == 0) {
++                                    theValue = (short) r.nextInt(65535);
++                                }
++                                bos.write((byte) (theValue >>> 8));
++                                bos.write((byte) theValue);
++                            }
++                            doTest(bos.toByteArray());
++                        }
++                    } catch (Exception e) {
++                        throw new RuntimeException(e);
++                    }
++                }
++            };
++            threads[tid].start();
++        }
++        startingGun.countDown();
++        for (Thread t : threads) {
++            t.join();
++        }
++    }
++
++    private void doTest(byte bytes[]) throws IOException {
++        ByteBuffer bb = ByteBuffer.wrap(bytes);
++        StreamInput rawIn = new ByteBufferStreamInput(bb);
++        Compressor c = compressor;
++
++        ByteArrayOutputStream bos = new ByteArrayOutputStream();
++        OutputStreamStreamOutput rawOs = new OutputStreamStreamOutput(bos);
++        StreamOutput os = c.streamOutput(rawOs);
++
++        Random r = random();
++        int bufferSize = r.nextBoolean() ? 65535 : TestUtil.nextInt(random(), 1, 70000);
++        int prepadding = r.nextInt(70000);
++        int postpadding = r.nextInt(70000);
++        byte buffer[] = new byte[prepadding + bufferSize + postpadding];
++        r.nextBytes(buffer); // fill block completely with junk
++        int len;
++        while ((len = rawIn.read(buffer, prepadding, bufferSize)) != -1) {
++            os.write(buffer, prepadding, len);
++        }
++        os.close();
++        rawIn.close();
++
++        // now we have compressed byte array
++
++        byte compressed[] = bos.toByteArray();
++        ByteBuffer bb2 = ByteBuffer.wrap(compressed);
++        StreamInput compressedIn = new ByteBufferStreamInput(bb2);
++        StreamInput in = c.streamInput(compressedIn);
++
++        // randomize constants again
++        bufferSize = r.nextBoolean() ? 65535 : TestUtil.nextInt(random(), 1, 70000);
++        prepadding = r.nextInt(70000);
++        postpadding = r.nextInt(70000);
++        buffer = new byte[prepadding + bufferSize + postpadding];
++        r.nextBytes(buffer); // fill block completely with junk
++
++        ByteArrayOutputStream uncompressedOut = new ByteArrayOutputStream();
++        while ((len = in.read(buffer, prepadding, bufferSize)) != -1) {
++            uncompressedOut.write(buffer, prepadding, len);
++        }
++        uncompressedOut.close();
++
++        assertArrayEquals(bytes, uncompressedOut.toByteArray());
++    }
++}
+diff --git a/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java b/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java
+new file mode 100644
+index 0000000..b1ee13f
+--- /dev/null
++++ b/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java
+@@ -0,0 +1,100 @@
++/*
++ * Licensed to Elasticsearch under one or more contributor
++ * license agreements. See the NOTICE file distributed with
++ * this work for additional information regarding copyright
++ * ownership. Elasticsearch licenses this file to you under
++ * the Apache License, Version 2.0 (the "License"); you may
++ * not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *    http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing,
++ * software distributed under the License is distributed on an
++ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++ * KIND, either express or implied.  See the License for the
++ * specific language governing permissions and limitations
++ * under the License.
++ */
++package org.elasticsearch.common.compress;
++
++import org.apache.lucene.util.TestUtil;
++import org.elasticsearch.common.bytes.BytesReference;
++import org.elasticsearch.common.io.stream.BytesStreamOutput;
++import org.elasticsearch.common.io.stream.StreamOutput;
++import org.elasticsearch.test.ESTestCase;
++import org.junit.Assert;
++
++import java.io.IOException;
++import java.util.Random;
++
++import static org.hamcrest.Matchers.equalTo;
++import static org.hamcrest.Matchers.not;
++
++public class QatCompressedXContentTests extends ESTestCase {
++
++    private final Compressor compressor = new QatCompressor();
++
++    private void assertEquals(CompressedXContent s1, CompressedXContent s2) {
++        Assert.assertEquals(s1, s2);
++        assertArrayEquals(s1.uncompressed(), s2.uncompressed());
++        assertEquals(s1.hashCode(), s2.hashCode());
++    }
++
++    public void simpleTests() throws IOException {
++        String str = "---\nf:this is a simple string";
++        CompressedXContent cstr = new CompressedXContent(str);
++        assertThat(cstr.string(), equalTo(str));
++        assertThat(new CompressedXContent(str), equalTo(cstr));
++
++        String str2 = "---\nf:this is a simple string 2";
++        CompressedXContent cstr2 = new CompressedXContent(str2);
++        assertThat(cstr2.string(), not(equalTo(str)));
++        assertThat(new CompressedXContent(str2), not(equalTo(cstr)));
++        assertEquals(new CompressedXContent(str2), cstr2);
++    }
++
++    public void testRandom() throws IOException {
++        Random r = random();
++        for (int i = 0; i < 1000; i++) {
++            String string = TestUtil.randomUnicodeString(r, 10000);
++            // hack to make it detected as YAML
++            string = "---\n" + string;
++            CompressedXContent compressedXContent = new CompressedXContent(string);
++            assertThat(compressedXContent.string(), equalTo(string));
++        }
++    }
++
++    public void testDifferentCompressedRepresentation() throws Exception {
++        byte[] b = "---\nf:abcdefghijabcdefghij".getBytes("UTF-8");
++        BytesStreamOutput bout = new BytesStreamOutput();
++        StreamOutput out = compressor.streamOutput(bout);
++        out.writeBytes(b);
++        out.flush();
++        out.writeBytes(b);
++        out.close();
++        final BytesReference b1 = bout.bytes();
++
++        bout = new BytesStreamOutput();
++        out = compressor.streamOutput(bout);
++        out.writeBytes(b);
++        out.writeBytes(b);
++        out.close();
++        final BytesReference b2 = bout.bytes();
++
++        // because of the intermediate flush, the two compressed representations
++        // are different. It can also happen for other reasons like if hash tables
++        // of different size are being used
++        assertFalse(b1.equals(b2));
++        // we used the compressed representation directly and did not recompress
++        assertArrayEquals(BytesReference.toBytes(b1), new CompressedXContent(b1).compressed());
++        assertArrayEquals(BytesReference.toBytes(b2), new CompressedXContent(b2).compressed());
++        // but compressedstring instances are still equal
++        assertEquals(new CompressedXContent(b1), new CompressedXContent(b2));
++    }
++
++    public void testHashCode() throws IOException {
++        assertFalse(new CompressedXContent("{\"a\":\"b\"}").hashCode() == new CompressedXContent("{\"a\":\"c\"}").hashCode());
++    }
++
++}
+diff --git a/test/framework/build.gradle b/test/framework/build.gradle
+index 9cabdb8..3c3f89b 100644
+--- a/test/framework/build.gradle
++++ b/test/framework/build.gradle
+@@ -27,7 +27,8 @@ dependencies {
+   compile "junit:junit:${versions.junit}"
+   compile "org.hamcrest:hamcrest:${versions.hamcrest}"
+   compile "org.apache.lucene:lucene-test-framework:${versions.lucene}"
+-  compile "org.apache.lucene:lucene-codecs:${versions.lucene}"
++  compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
++ // compile "org.apache.lucene:lucene-codecs:${versions.lucene}"
+   compile "commons-logging:commons-logging:${versions.commonslogging}"
+   compile "commons-codec:commons-codec:${versions.commonscodec}"
+   compile "org.elasticsearch:securemock:${versions.securemock}"
+diff --git a/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java b/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
+index f844e88..cd7171e 100644
+--- a/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
++++ b/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
+@@ -394,7 +394,7 @@ public abstract class ESIntegTestCase extends ESTestCase {
+             // otherwise, use it, it has assertions and so on that can find bugs.
+             SuppressCodecs annotation = getClass().getAnnotation(SuppressCodecs.class);
+             if (annotation != null && annotation.value().length == 1 && "*".equals(annotation.value()[0])) {
+-                randomSettingsBuilder.put("index.codec", randomFrom(CodecService.DEFAULT_CODEC, CodecService.BEST_COMPRESSION_CODEC));
++                randomSettingsBuilder.put("index.codec", randomFrom(CodecService.DEFAULT_CODEC, CodecService.BEST_COMPRESSION_CODEC,CodecService.QAT_CODEC));
+             } else {
+                 randomSettingsBuilder.put("index.codec", CodecService.LUCENE_DEFAULT_CODEC);
+             }
+diff --git a/x-pack/plugin/sql/sql-action/build.gradle b/x-pack/plugin/sql/sql-action/build.gradle
+index defbf3d..8ba3cbd 100644
+--- a/x-pack/plugin/sql/sql-action/build.gradle
++++ b/x-pack/plugin/sql/sql-action/build.gradle
+@@ -20,7 +20,8 @@ dependencies {
+         transitive = false
+     }
+     compile xpackProject('plugin:sql:sql-proto')
+-    compile "org.apache.lucene:lucene-core:${versions.lucene}"
++    compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
++   // compile "org.apache.lucene:lucene-core:${versions.lucene}"
+     compile "joda-time:joda-time:${versions.joda}"
+     runtime "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+     runtime "org.apache.logging.log4j:log4j-api:${versions.log4j}"
