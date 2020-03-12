@@ -93,7 +93,7 @@ QzSession_T  g_qzDecompressSession = {
   LOAD_DYNAMIC_SYMBOL(__dlsym_qatzip_uncompress, dlsym_qzDecompress, env, libqatzip, "qzDecompress");
 #endif
 
-  fprintf(stderr, "-------> decompression tid is %d\n",syscall(__NR_gettid));
+  fprintf(stderr, "decompression tid is %d\n",syscall(__NR_gettid));
   fflush(stderr);
   QatDecompressorJNI_clazz = (*env)->GetStaticFieldID(env, clazz, "clazz",
                                                    "Ljava/lang/Class;");

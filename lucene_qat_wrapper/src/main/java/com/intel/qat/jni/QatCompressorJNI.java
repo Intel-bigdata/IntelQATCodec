@@ -21,8 +21,8 @@ package com.intel.qat.jni;
 
 import com.intel.qat.conf.QatConfigurationKeys;
 import com.intel.qat.util.QatNativeCodeLoader;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.Buffer;
@@ -38,7 +38,7 @@ import java.nio.ByteBuffer;
 
 public class QatCompressorJNI {
 
-    private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class.getName());
+    private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class);
     private static final int DEFAULT_DIRECT_BUFFER_SIZE = 640 * 1024;
 
     // HACK - Use this as a global lock in the JNI layer

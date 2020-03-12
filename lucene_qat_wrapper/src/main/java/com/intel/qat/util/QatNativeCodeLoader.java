@@ -18,12 +18,8 @@
 
 package com.intel.qat.util;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 /**
  * A helper to load the native qat code i.e. libqat.so.
  * This handles the fallback to either the bundled libhadoop-Linux-i386-32.so
