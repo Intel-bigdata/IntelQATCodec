@@ -1,8 +1,18 @@
 diff --git a/lucene/build.xml b/lucene/build.xml
-index e3cf905..e3b3d49 100644
+index e3cf905c971..b6b95b9477a 100644
 --- a/lucene/build.xml
 +++ b/lucene/build.xml
-@@ -75,6 +75,9 @@
+@@ -21,6 +21,9 @@
+          xmlns:jacoco="antlib:org.jacoco.ant"
+          xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+ 
++  <property name="version.base" value="8.2.0"/>
++  <property name="lucene_baseCommitID" value="e8494222be8a44678b43f907b47accbda3ebd401"/>
++  
+   <import file="common-build.xml"/>
+ 
+   <path id="classpath">
+@@ -75,6 +78,9 @@
    <target name="compile" depends="init,compile-lucene-core,compile-codecs"
            description="Compiles core, codecs, and all modules">
      <modules-crawl target="compile-core"/>
@@ -13,7 +23,7 @@ index e3cf905..e3b3d49 100644
  
    <!-- Validation (license/notice/api checks). -->
 diff --git a/lucene/core/build.xml b/lucene/core/build.xml
-index 46183b0..d1d27d8 100644
+index 46183b0e6ff..d1d27d80093 100644
 --- a/lucene/core/build.xml
 +++ b/lucene/core/build.xml
 @@ -29,7 +29,10 @@
@@ -36,9 +46,8 @@ index 46183b0..d1d27d8 100644
      <pathelement location="${-test.classpath.java9.addon}"/><!-- if it's a duplicate it gets removed by Ant! -->
      <pathelement location="${build.dir}/classes/java"/>
      <pathelement location="${build.dir}/classes/test"/>
- 
 diff --git a/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java b/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
-index 53a84cb..3af4b6b 100644
+index 53a84cbdd53..2ed43542a03 100644
 --- a/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
 +++ b/lucene/core/src/java/org/apache/lucene/codecs/compressing/CompressionMode.java
 @@ -22,6 +22,8 @@ import java.util.zip.DataFormatException;
@@ -83,7 +92,7 @@ index 53a84cb..3af4b6b 100644
  
    /**
     * Create a new {@link Compressor} instance.
-@@ -296,4 +319,111 @@ public abstract class CompressionMode {
+@@ -296,4 +319,105 @@ public abstract class CompressionMode {
  
    }
  
@@ -109,25 +118,19 @@ index 53a84cb..3af4b6b 100644
 +        return;
 +      }
 +      final int compressedLength = in.readVInt();
-+      // pad with extra "dummy byte": see javadocs for using Inflater(true)
-+      // we do it for compliance, but it's unnecessary for years in zlib.
-+      final int paddedLength = compressedLength;
-+      compressed = ArrayUtil.grow(compressed, paddedLength + 1);
++      compressed = new byte[compressedLength];
 +      in.readBytes(compressed, 0, compressedLength);
-+      compressed[compressedLength] = 0; // explicitly set dummy byte to 0
 +
 +      final QatDecompressorJNI decompressor = new QatDecompressorJNI();
 +
 +      try {
-+        // extra "dummy byte"
-+        decompressor.setInput(compressed, 0, paddedLength);
++        decompressor.setInput(compressed, 0, compressedLength);
 +        bytes.offset = bytes.length = 0;
 +        bytes.bytes = ArrayUtil.grow(bytes.bytes, originalLength);
 +        try {
 +          bytes.length = decompressor.decompress(bytes.bytes, bytes.length, originalLength);
 +        } catch (Error e) {
-+          String s = e.getMessage();
-+          System.out.println(e.getMessage());
++          throw new Error(e);
 +        }
 +
 +        if (!decompressor.finished()) {
@@ -169,7 +172,7 @@ index 53a84cb..3af4b6b 100644
 +      compressor.finish();
 +
 +      int totalCount = 0;
-+      for (; ; ) {
++      while (!compressor.finished() ) {
 +        final int count = compressor.compress(compressed, totalCount, compressed.length - totalCount);
 +        totalCount += count;
 +        assert totalCount <= compressed.length;
@@ -196,7 +199,7 @@ index 53a84cb..3af4b6b 100644
 +
  }
 diff --git a/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java b/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
-index fdfba5b..7c61e50 100644
+index fdfba5b7677..7c61e50f87e 100644
 --- a/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
 +++ b/lucene/core/src/java/org/apache/lucene/codecs/lucene50/Lucene50StoredFieldsFormat.java
 @@ -145,7 +145,9 @@ public final class Lucene50StoredFieldsFormat extends StoredFieldsFormat {
@@ -220,7 +223,7 @@ index fdfba5b..7c61e50 100644
      }
    }
 diff --git a/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java b/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
-index 62d06d8..6e4f1a2 100644
+index 62d06d8f0f6..6e4f1a2389c 100644
 --- a/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
 +++ b/lucene/core/src/test/org/apache/lucene/codecs/compressing/AbstractTestCompressionMode.java
 @@ -20,15 +20,16 @@ package org.apache.lucene.codecs.compressing;
@@ -273,18 +276,9 @@ index 62d06d8..6e4f1a2 100644
      }
    }
  
-@@ -127,7 +141,7 @@ public abstract class AbstractTestCompressionMode extends LuceneTestCase {
-   }
- 
-   public void testShortSequence() throws IOException {
--    test(new byte[] { (byte) random().nextInt(256) });
-+    test(new byte[] { (byte) random().nextInt(256)});
-   }
- 
-   public void testIncompressible() throws IOException {
 diff --git a/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java b/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java
 new file mode 100644
-index 0000000..9bacf20
+index 00000000000..9bacf20caa9
 --- /dev/null
 +++ b/lucene/core/src/test/org/apache/lucene/codecs/compressing/TestQatCompressionDecompressionMode.java
 @@ -0,0 +1,26 @@
@@ -316,7 +310,7 @@ index 0000000..9bacf20
 +}
 diff --git a/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java b/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java
 new file mode 100644
-index 0000000..e361fcd
+index 00000000000..e361fcdec08
 --- /dev/null
 +++ b/lucene/core/src/test/org/apache/lucene/codecs/lucene50/TestLucene50StoredFieldsFormatQatCompression.java
 @@ -0,0 +1,80 @@
@@ -401,17 +395,9 @@ index 0000000..e361fcd
 +  }
 +}
 diff --git a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
-index 4fd5e16..b06d86a 100644
+index 4fd5e16cef8..b06d86af5b4 100644
 --- a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
 +++ b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/CompressingCodec.java
-@@ -26,6 +26,7 @@ import org.apache.lucene.util.TestUtil;
- 
- import com.carrotsearch.randomizedtesting.generators.RandomNumbers;
- 
-+
- /**
-  * A codec that uses {@link CompressingStoredFieldsFormat} for its stored
-  * fields and delegates to the default codec for everything else.
 @@ -36,22 +37,26 @@ public abstract class CompressingCodec extends FilterCodec {
     * Create a random instance.
     */
@@ -445,15 +431,9 @@ index 4fd5e16..b06d86a 100644
      }
    }
  
-   /**
--   * Creates a random {@link CompressingCodec} that is using an empty segment 
-+   * Creates a random {@link CompressingCodec} that is using an empty segment
-    * suffix
-    */
-   public static CompressingCodec randomInstance(Random random) {
 diff --git a/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java
 new file mode 100644
-index 0000000..ffaaac7
+index 00000000000..dfc322cbf79
 --- /dev/null
 +++ b/lucene/test-framework/src/java/org/apache/lucene/codecs/compressing/QatCompressionCompressingCodec.java
 @@ -0,0 +1,41 @@
@@ -495,11 +475,11 @@ index 0000000..ffaaac7
 +  public QatCompressionCompressingCodec() {
 +    // we don't worry about zlib block overhead as it's
 +    // not bad and try to save space instead:
-+    this(61440, 512, false, 1024);
++    this(60*1024, 512, false, 1024);
 +  }
 +}
 diff --git a/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java b/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
-index 7acee87..6c5368c 100644
+index 7acee871f59..54b042705b2 100644
 --- a/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
 +++ b/lucene/test-framework/src/java/org/apache/lucene/index/BaseTermVectorsFormatTestCase.java
 @@ -60,6 +60,7 @@ import org.apache.lucene.store.Directory;
@@ -519,7 +499,7 @@ index 7acee87..6c5368c 100644
  
    /**
 diff --git a/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec b/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
-index 282f5dd..292c393 100644
+index 282f5dd20c8..292c3931963 100644
 --- a/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
 +++ b/lucene/test-framework/src/resources/META-INF/services/org.apache.lucene.codecs.Codec
 @@ -19,3 +19,4 @@ org.apache.lucene.codecs.compressing.FastCompressingCodec
@@ -528,7 +508,7 @@ index 282f5dd..292c393 100644
  org.apache.lucene.codecs.compressing.dummy.DummyCompressingCodec
 +org.apache.lucene.codecs.compressing.QatCompressionCompressingCodec
 diff --git a/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java b/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
-index cf1c6a3..83c9737 100644
+index cf1c6a30a39..83c9737cb78 100644
 --- a/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
 +++ b/lucene/test-framework/src/test/org/apache/lucene/codecs/compressing/TestCompressingTermVectorsFormat.java
 @@ -38,7 +38,9 @@ import org.apache.lucene.index.TermsEnum.SeekStatus;
@@ -542,7 +522,7 @@ index cf1c6a3..83c9737 100644
  
    @Override
 diff --git a/lucene/tools/build.xml b/lucene/tools/build.xml
-index b245dce..ab887cc 100644
+index b245dce2e9a..ab887ccf064 100644
 --- a/lucene/tools/build.xml
 +++ b/lucene/tools/build.xml
 @@ -29,10 +29,13 @@
@@ -562,7 +542,7 @@ index b245dce..ab887cc 100644
    <target name="compile-test"/>
    <target name="-test"/>
 diff --git a/lucene/tools/junit4/tests.policy b/lucene/tools/junit4/tests.policy
-index 7494981..c31be98 100644
+index 74949813b7c..c31be9867c0 100644
 --- a/lucene/tools/junit4/tests.policy
 +++ b/lucene/tools/junit4/tests.policy
 @@ -28,6 +28,12 @@ grant {
