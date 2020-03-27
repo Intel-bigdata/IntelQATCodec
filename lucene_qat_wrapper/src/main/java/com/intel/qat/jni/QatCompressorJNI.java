@@ -28,14 +28,10 @@ import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
-
 /**
- * @author root
- * @date 12/3/19 12:39 PM
  * @decsription: A {@link Compressor} based on the qat compression algorithm.
  * @link qat-parent
  */
-
 public class QatCompressorJNI {
 
     private static final Logger LOG = LogManager.getLogger(QatCompressorJNI.class);
@@ -45,6 +41,16 @@ public class QatCompressorJNI {
     @SuppressWarnings({"rawtypes"})
     private static Class clazz = QatCompressorJNI.class;
     private static boolean nativeQatLoaded = false;
+
+    private volatile int directBufferSize;
+    private volatile Buffer compressedDirectBuf = null;
+    private volatile int uncompressedDirectBufLen;
+    private volatile Buffer uncompressedDirectBuf = null;
+    private volatile byte[] userBuf = null;
+    private volatile int userBufOff = 0, userBufLen = 0;
+    private volatile boolean finish, finished;
+    private volatile long bytesRead = 0L;
+    private volatile long bytesWritten = 0L;
 
     static {
         if (QatNativeCodeLoader.isNativeCodeLoaded() &&
@@ -75,16 +81,6 @@ public class QatCompressorJNI {
             }
         }
     }
-
-    private int directBufferSize;
-    private Buffer compressedDirectBuf = null;
-    private int uncompressedDirectBufLen;
-    private Buffer uncompressedDirectBuf = null;
-    private byte[] userBuf = null;
-    private int userBufOff = 0, userBufLen = 0;
-    private boolean finish, finished;
-    private long bytesRead = 0L;
-    private long bytesWritten = 0L;
 
     /**
      * Creates a new compressor.
@@ -342,6 +338,7 @@ public class QatCompressorJNI {
      */
 
     public synchronized void end() {
+        //do nothing
     }
 
     private native int compressBytesDirect();

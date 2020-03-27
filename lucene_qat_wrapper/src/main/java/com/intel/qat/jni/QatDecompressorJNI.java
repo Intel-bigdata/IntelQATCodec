@@ -27,8 +27,6 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
- * @author root
- * @date 12/3/19 12:47 PM
  * @decsription: A {@link Decompressor} based on the qat compression algorithm. It's not thread-safe.
  * @link qat-parent
  */
@@ -42,6 +40,14 @@ public class QatDecompressorJNI {
     private static Class clazz = QatDecompressorJNI.class;
     private static boolean nativeQatLoaded = false;
 
+    private int directBufferSize;
+    private Buffer compressedDirectBuf = null;
+    private int compressedDirectBufLen;
+    private Buffer uncompressedDirectBuf = null;
+    private byte[] userBuf = null;
+    private int userBufOff = 0, userBufLen = 0;
+    private boolean finished;
+
     static {
         if (QatNativeCodeLoader.isNativeCodeLoaded() &&
                 QatNativeCodeLoader.buildSupportsQat()) {
@@ -53,14 +59,6 @@ public class QatDecompressorJNI {
             }
         }
     }
-
-    private int directBufferSize;
-    private Buffer compressedDirectBuf = null;
-    private int compressedDirectBufLen;
-    private Buffer uncompressedDirectBuf = null;
-    private byte[] userBuf = null;
-    private int userBufOff = 0, userBufLen = 0;
-    private boolean finished;
 
     /**
      * Creates a new decompressor.

@@ -20,15 +20,13 @@ package com.intel.qat.util;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 /**
  * A helper to load the native qat code i.e. libqat.so.
  * This handles the fallback to either the bundled libhadoop-Linux-i386-32.so
  * or the default java implementations where appropriate.
- *  
  */
-
 public class QatNativeCodeLoader {
-  //private static final Logger LOG = LoggerFactory.getLogger(QatNativeCodeLoader.class);
   private static final Logger LOG = LogManager.getLogger(QatNativeCodeLoader.class);
   private static boolean nativeCodeLoaded = false;
 
@@ -43,11 +41,9 @@ public class QatNativeCodeLoader {
       nativeCodeLoaded = true;
     } catch (Throwable t) {
       // Ignore failure to load
-      if(LOG.isDebugEnabled()) {
         LOG.debug("Failed to load native-qat with error: " + t);
         LOG.debug("java.library.path=" +
             System.getProperty("java.library.path"));
-      }
     }
 
     if (!nativeCodeLoaded) {

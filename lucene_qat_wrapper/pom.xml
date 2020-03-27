@@ -33,7 +33,7 @@
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
     <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
     <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-    <!--<maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>-20190909 by zj-->
+    <maven-assembly-plugin.version>3.0.0</maven-assembly-plugin.version>
     <maven-shade-plugin.version>3.0.0</maven-shade-plugin.version>
     <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
     <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
