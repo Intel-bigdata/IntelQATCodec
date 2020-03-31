@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
 public class QatDecompressorJNI {
     private static final Logger LOG = LogManager.getLogger(QatDecompressorJNI.class);
 
-    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 640 * 1024;
+    private static final int DEFAULT_DIRECT_BUFFER_SIZE = 64 * 1024;
 
     // HACK - Use this as a global lock in the JNI layer
     @SuppressWarnings({"rawtypes"})
