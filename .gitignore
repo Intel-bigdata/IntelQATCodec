@@ -39,4 +39,4 @@ columnar_format_qat_wrapper/target/
 javah/
 jni-header/
 target/
-common/
+commons/
