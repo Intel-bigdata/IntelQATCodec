@@ -1,130 +1,32 @@
 diff --git a/buildSrc/build.gradle b/buildSrc/build.gradle
-index 9686435..87777d5 100644
+index 7a02f7c2cf3..7ad505a6a35 100644
 --- a/buildSrc/build.gradle
 +++ b/buildSrc/build.gradle
-@@ -114,6 +114,10 @@ dependencies {
-   
+@@ -110,6 +110,10 @@ dependencies {
    compile 'commons-codec:commons-codec:1.12'
+   compile 'org.apache.commons:commons-compress:1.19'
  
 +  //compile 'com.intel.qat:es_qat_wrapper:1.0.0'
-+   compile fileTree(dir:'libs',includes:['*jar'])
-+   testCompile fileTree(dir:'libs',includes:['*jar'])
++  compile fileTree(dir: 'libs', includes: ['*jar'])
++  testCompile fileTree(dir: 'libs', includes: ['*jar'])
 +
    compile 'com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3'
    compile 'com.netflix.nebula:nebula-publishing-plugin:4.4.4'
-   compile 'com.netflix.nebula:gradle-info-plugin:3.0.3'
-diff --git a/buildSrc/libs/es_qat_wrapper-1.0.0.jar b/buildSrc/libs/es_qat_wrapper-1.0.0.jar
-new file mode 100644
-index 0000000..81ae918
-Binary files /dev/null and b/buildSrc/libs/es_qat_wrapper-1.0.0.jar differ
-diff --git a/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..b95e453
-Binary files /dev/null and b/buildSrc/libs/lucene-analyzers-common-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..f467577
-Binary files /dev/null and b/buildSrc/libs/lucene-backward-codecs-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..97fdae3
-Binary files /dev/null and b/buildSrc/libs/lucene-codecs-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..3ceca7c
-Binary files /dev/null and b/buildSrc/libs/lucene-core-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..274376f
-Binary files /dev/null and b/buildSrc/libs/lucene-grouping-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..21e8f6e
-Binary files /dev/null and b/buildSrc/libs/lucene-highlighter-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..eccdfc2
-Binary files /dev/null and b/buildSrc/libs/lucene-join-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..27e71e5
-Binary files /dev/null and b/buildSrc/libs/lucene-memory-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..fc6c503
-Binary files /dev/null and b/buildSrc/libs/lucene-misc-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..640d384
-Binary files /dev/null and b/buildSrc/libs/lucene-queries-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..21a7758
-Binary files /dev/null and b/buildSrc/libs/lucene-queryparser-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..e0139db
-Binary files /dev/null and b/buildSrc/libs/lucene-sandbox-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..b73f455
-Binary files /dev/null and b/buildSrc/libs/lucene-spatial-extras-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..d62e645
-Binary files /dev/null and b/buildSrc/libs/lucene-spatial3d-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar b/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar
-new file mode 100644
-index 0000000..6a0402c
-Binary files /dev/null and b/buildSrc/libs/lucene-suggest-8.2.0-SNAPSHOT.jar differ
-diff --git a/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar b/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar
-new file mode 100755
-index 0000000..e18480b
-Binary files /dev/null and b/buildSrc/libs/lucene_qat_wrapper-1.0.0.jar differ
-diff --git a/gradle.properties b/gradle.properties
-index 63b1dc3..e48b77e 100644
---- a/gradle.properties
-+++ b/gradle.properties
-@@ -1,3 +1,12 @@
- org.gradle.daemon=true
--org.gradle.jvmargs=-Xmx3g -XX:+HeapDumpOnOutOfMemoryError -Xss2m
-+
-+org.gradle.jvmargs=-Xmx50g -XX:+HeapDumpOnOutOfMemoryError -Xss2m  -XX:MaxPermSize=25g
-+
- options.forkOptions.memoryMaximumSize=2g
-+
-diff --git a/modules/ingest-common/build.gradle b/modules/ingest-common/build.gradle
-index 00c444e..1a59af7 100644
---- a/modules/ingest-common/build.gradle
-+++ b/modules/ingest-common/build.gradle
-@@ -1,4 +1,5 @@
- /*
-+/*
-  * Licensed to Elasticsearch under one or more contributor
-  * license agreements. See the NOTICE file distributed with
-  * this work for additional information regarding copyright
+   compile 'com.netflix.nebula:gradle-info-plugin:5.1.0'
 diff --git a/server/build.gradle b/server/build.gradle
-index 33fab57..5427853 100644
+index 6e9dcdbd34e..8234454f056 100644
 --- a/server/build.gradle
 +++ b/server/build.gradle
-@@ -83,7 +83,7 @@ dependencies {
+@@ -85,7 +85,7 @@ dependencies {
    testRuntime project(':libs:elasticsearch-plugin-classloader')
  
    // lucene
 -  compile "org.apache.lucene:lucene-core:${versions.lucene}"
-+  /*compile "org.apache.lucene:lucene-core:${versions.lucene}"
++  //compile "org.apache.lucene:lucene-core:${versions.lucene}"
    compile "org.apache.lucene:lucene-analyzers-common:${versions.lucene}"
    compile "org.apache.lucene:lucene-backward-codecs:${versions.lucene}"
    compile "org.apache.lucene:lucene-grouping:${versions.lucene}"
-@@ -97,12 +97,21 @@ dependencies {
-   compile "org.apache.lucene:lucene-spatial:${versions.lucene}"
-   compile "org.apache.lucene:lucene-spatial-extras:${versions.lucene}"
-   compile "org.apache.lucene:lucene-spatial3d:${versions.lucene}"
--  compile "org.apache.lucene:lucene-suggest:${versions.lucene}"
-+  compile "org.apache.lucene:lucene-suggest:${versions.lucene}"*/
-+  compile "org.apache.lucene:lucene-spatial:${versions.lucene}"
- 
-   // utilities
+@@ -105,6 +105,10 @@ dependencies {
    compile project(":libs:elasticsearch-cli")
    compile 'com.carrotsearch:hppc:0.8.1'
  
@@ -132,15 +34,11 @@ index 33fab57..5427853 100644
 +  compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
 +  testCompile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
 +
-+  // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-+  compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.1'
-+
-+
    // time handling, remove with java 8 time
    compile "joda-time:joda-time:${versions.joda}"
  
 diff --git a/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java b/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
-index 2ff2f4e..a839a4b 100644
+index 2ff2f4e95df..16629396a76 100644
 --- a/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
 +++ b/server/src/main/java/org/elasticsearch/common/compress/CompressorFactory.java
 @@ -30,7 +30,8 @@ import java.util.Objects;
@@ -148,14 +46,14 @@ index 2ff2f4e..a839a4b 100644
  public class CompressorFactory {
  
 -    public static final Compressor COMPRESSOR = new DeflateCompressor();
-+   // public static final Compressor COMPRESSOR = new DeflateCompressor();
-+   public static final Compressor COMPRESSOR = new QatCompressor();
++    //public static final Compressor COMPRESSOR = new DeflateCompressor();
++    public static final Compressor COMPRESSOR = new QatCompressor();
  
      public static boolean isCompressed(BytesReference bytes) {
          return compressor(bytes) != null;
 diff --git a/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java b/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java
 new file mode 100644
-index 0000000..5aef96c
+index 00000000000..5aef96c70c9
 --- /dev/null
 +++ b/server/src/main/java/org/elasticsearch/common/compress/QatCompressor.java
 @@ -0,0 +1,120 @@
@@ -280,7 +178,7 @@ index 0000000..5aef96c
 +    }
 +}
 diff --git a/server/src/main/java/org/elasticsearch/index/codec/CodecService.java b/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
-index 485c40d..6be76f6 100644
+index 0909465da4f..63cdca262de 100644
 --- a/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
 +++ b/server/src/main/java/org/elasticsearch/index/codec/CodecService.java
 @@ -41,6 +41,7 @@ public class CodecService {
@@ -291,22 +189,23 @@ index 485c40d..6be76f6 100644
      /** the raw unfiltered lucene default. useful for testing */
      public static final String LUCENE_DEFAULT_CODEC = "lucene_default";
  
-@@ -49,11 +50,13 @@ public class CodecService {
+@@ -49,11 +50,14 @@ public class CodecService {
          if (mapperService == null) {
-             codecs.put(DEFAULT_CODEC, new Lucene80Codec());
-             codecs.put(BEST_COMPRESSION_CODEC, new Lucene80Codec(Mode.BEST_COMPRESSION));
-+            codecs.put(QAT_CODEC,new Lucene80Codec(Mode.QAT));
+             codecs.put(DEFAULT_CODEC, new Lucene84Codec());
+             codecs.put(BEST_COMPRESSION_CODEC, new Lucene84Codec(Mode.BEST_COMPRESSION));
++            codecs.put(QAT_CODEC,new Lucene84Codec(Mode.QAT));
          } else {
              codecs.put(DEFAULT_CODEC,
                      new PerFieldMappingPostingFormatCodec(Mode.BEST_SPEED, mapperService, logger));
              codecs.put(BEST_COMPRESSION_CODEC,
                      new PerFieldMappingPostingFormatCodec(Mode.BEST_COMPRESSION, mapperService, logger));
-+            codecs.put(QAT_CODEC,new PerFieldMappingPostingFormatCodec(Mode.QAT,mapperService, logger));
++            codecs.put(QAT_CODEC,
++                    new PerFieldMappingPostingFormatCodec(Mode.QAT,mapperService, logger));
          }
          codecs.put(LUCENE_DEFAULT_CODEC, Codec.getDefault());
          for (String codec : Codec.availableCodecs()) {
 diff --git a/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java b/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
-index 7696d54..27acc8e 100644
+index 7716cf93ffd..23d89913a4d 100644
 --- a/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
 +++ b/server/src/main/java/org/elasticsearch/index/engine/EngineConfig.java
 @@ -105,12 +105,13 @@ public final class EngineConfig {
@@ -325,15 +224,14 @@ index 7696d54..27acc8e 100644
                  return s;
          }
 diff --git a/server/src/main/resources/org/elasticsearch/bootstrap/security.policy b/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
-index 4e3bc56..aa22f51 100644
+index 4e3bc562770..395b6c9bd5e 100644
 --- a/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
 +++ b/server/src/main/resources/org/elasticsearch/bootstrap/security.policy
-@@ -24,6 +24,13 @@
+@@ -24,6 +24,12 @@
  //// SecurityManager impl:
  //// Must have all permissions to properly perform access checks
  
 +grant {
-+ 
 +   permission java.lang.RuntimePermission "loadLibrary.*";
 +   permission java.io.FilePermission "/*", "read";
 +   permission java.io.FilePermission "/*", "write";
@@ -342,7 +240,7 @@ index 4e3bc56..aa22f51 100644
  grant codeBase "${codebase.elasticsearch-secure-sm}" {
    permission java.security.AllPermission;
  };
-@@ -157,4 +164,11 @@ grant {
+@@ -157,4 +163,10 @@ grant {
    permission java.io.FilePermission "/sys/fs/cgroup/memory", "read";
    permission java.io.FilePermission "/sys/fs/cgroup/memory/-", "read";
  
@@ -352,11 +250,10 @@ index 4e3bc56..aa22f51 100644
 +  permission java.io.FilePermission   "/* ",   "write ";
 +  permission java.io.FilePermission   "/* ",   "delete ";
 +  permission java.io.FilePermission  "/*",  "read";
-+
  };
 diff --git a/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java b/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java
 new file mode 100644
-index 0000000..dec2c87
+index 00000000000..dec2c87b5dc
 --- /dev/null
 +++ b/server/src/test/java/org/elasticsearch/common/compress/QatCompressTests.java
 @@ -0,0 +1,429 @@
@@ -791,7 +688,7 @@ index 0000000..dec2c87
 +}
 diff --git a/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java b/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java
 new file mode 100644
-index 0000000..b1ee13f
+index 00000000000..b1ee13ff528
 --- /dev/null
 +++ b/server/src/test/java/org/elasticsearch/common/compress/QatCompressedXContentTests.java
 @@ -0,0 +1,100 @@
@@ -895,25 +792,11 @@ index 0000000..b1ee13f
 +    }
 +
 +}
-diff --git a/test/framework/build.gradle b/test/framework/build.gradle
-index 9cabdb8..3c3f89b 100644
---- a/test/framework/build.gradle
-+++ b/test/framework/build.gradle
-@@ -27,7 +27,8 @@ dependencies {
-   compile "junit:junit:${versions.junit}"
-   compile "org.hamcrest:hamcrest:${versions.hamcrest}"
-   compile "org.apache.lucene:lucene-test-framework:${versions.lucene}"
--  compile "org.apache.lucene:lucene-codecs:${versions.lucene}"
-+  compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
-+ // compile "org.apache.lucene:lucene-codecs:${versions.lucene}"
-   compile "commons-logging:commons-logging:${versions.commonslogging}"
-   compile "commons-codec:commons-codec:${versions.commonscodec}"
-   compile "org.elasticsearch:securemock:${versions.securemock}"
 diff --git a/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java b/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
-index f844e88..cd7171e 100644
+index 062c2f970b6..51de7137772 100644
 --- a/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
 +++ b/test/framework/src/main/java/org/elasticsearch/test/ESIntegTestCase.java
-@@ -394,7 +394,7 @@ public abstract class ESIntegTestCase extends ESTestCase {
+@@ -413,7 +413,7 @@ public abstract class ESIntegTestCase extends ESTestCase {
              // otherwise, use it, it has assertions and so on that can find bugs.
              SuppressCodecs annotation = getClass().getAnnotation(SuppressCodecs.class);
              if (annotation != null && annotation.value().length == 1 && "*".equals(annotation.value()[0])) {
@@ -923,16 +806,16 @@ index f844e88..cd7171e 100644
                  randomSettingsBuilder.put("index.codec", CodecService.LUCENE_DEFAULT_CODEC);
              }
 diff --git a/x-pack/plugin/sql/sql-action/build.gradle b/x-pack/plugin/sql/sql-action/build.gradle
-index defbf3d..8ba3cbd 100644
+index 4e74d9be353..1c60ab0e8b0 100644
 --- a/x-pack/plugin/sql/sql-action/build.gradle
 +++ b/x-pack/plugin/sql/sql-action/build.gradle
-@@ -20,7 +20,8 @@ dependencies {
-         transitive = false
-     }
-     compile xpackProject('plugin:sql:sql-proto')
--    compile "org.apache.lucene:lucene-core:${versions.lucene}"
-+    compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
-+   // compile "org.apache.lucene:lucene-core:${versions.lucene}"
-     compile "joda-time:joda-time:${versions.joda}"
-     runtime "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
-     runtime "org.apache.logging.log4j:log4j-api:${versions.log4j}"
+@@ -19,7 +19,8 @@ dependencies {
+     transitive = false
+   }
+   compile xpackProject('plugin:sql:sql-proto')
+-  compile "org.apache.lucene:lucene-core:${versions.lucene}"
++  compile fileTree(dir: '../buildSrc/libs', includes: ['*jar'])
++  //compile "org.apache.lucene:lucene-core:${versions.lucene}"
+   compile "joda-time:joda-time:${versions.joda}"
+   runtime "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
+   runtime "org.apache.logging.log4j:log4j-api:${versions.log4j}"

@@ -27,7 +27,7 @@ Lucene_version_base="8.4.0"
 LUCENE_version=$1
 QATCodec_SRC_DIR=$2
 
-LUCENE_QAT_DIR=$QATCodec_SRC_DIR/es_qat_wrapper/${ES_version_base}/lucene-${Lucene_version_base}/lucene
+LUCENE_QAT_DIR=$QATCodec_SRC_DIR/es_qat_wrapper/${ES_version_base}/lucene-${Lucene_version_base}
 TARGET_DIR=$QATCodec_SRC_DIR/es_qat_wrapper/${ES_version_base}/target
 LUCENE_SRC_DIR=$TARGET_DIR/LUCENE
 
@@ -70,9 +70,16 @@ apply_patch_to_lucene(){
   LUCENE_TAG="releases/lucene-solr/${Lucene_version_base}"
   clone_repo $LUCENE_TAG $LUCENE_REPO
   checkout_branch
-  echo yes | cp -rf $LUCENE_QAT_DIR $LUCENE_SRC_DIR/
+  echo yes | cp -rf $LUCENE_QAT_DIR/lucene/lib $LUCENE_SRC_DIR/lucene
   popd
 }
+
+apply_diff_to_lucene(){
+   pushd $LUCENE_SRC_DIR
+   git apply --reject --whitespace=fix $LUCENE_QAT_DIR/lucene_8_4_0.diff
+   popd
+}
+
 if [ "$#" -ne 2 ]; then
   usage
 fi
@@ -87,3 +94,4 @@ else
 fi
 
 apply_patch_to_lucene
+apply_diff_to_lucene

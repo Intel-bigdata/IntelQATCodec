@@ -70,9 +70,16 @@ apply_patch_to_es(){
   ES_TAG="v${ES_version_base}"
   clone_repo $ES_TAG $ES_REPO
   checkout_branch
-  echo yes | cp -rf $ES_QAT_DIR/ $TARGET_DIR/
+  echo yes | cp -rf $ES_QAT_DIR/buildSrc/libs $ES_SRC_DIR/buildSrc
   popd
 }
+
+apply_diff_to_es(){
+   pushd $ES_SRC_DIR
+   git apply --reject --whitespace=fix $ES_QAT_DIR/elasticsearch_7_6_1.diff
+   popd
+}
+
 if [ "$#" -ne 2 ]; then
   usage
 fi
@@ -87,3 +94,4 @@ else
 fi
 
 apply_patch_to_es
+apply_diff_to_es
