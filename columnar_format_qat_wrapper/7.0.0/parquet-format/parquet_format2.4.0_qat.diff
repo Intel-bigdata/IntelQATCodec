@@ -1,0 +1,12 @@
+diff --git a/src/main/thrift/parquet.thrift b/src/main/thrift/parquet.thrift
+index fbca9b2..0d23f80 100644
+--- a/src/main/thrift/parquet.thrift
++++ b/src/main/thrift/parquet.thrift
+@@ -465,6 +465,7 @@ enum CompressionCodec {
+   BROTLI = 4; // Added in 2.3.2
+   LZ4 = 5;    // Added in 2.3.2
+   ZSTD = 6;   // Added in 2.3.2
++  QAT = 7;
+ }
+ 
+ enum PageType {
