@@ -80,5 +80,45 @@ After exporting above parameters execute the following commands
 
   make
 
+## Build the hive module for QAT 
+### Run the scripts    
+    $ cd columnar_format_qat_wrapper
+    $ ./apply_hive_jars.sh 7.0.0 $PATH/TO/IntelQATCodec
 
+After this, we can see that in the folder under columnar_format_qat_wrapper/target, there have four parts: (1) parquet-format (2) parquet-mr (3) orc (4) hive
+### Building the Parquet-format
+1. go to the folder target/parquet-format
+2. Please refer to documentation at
+[building](https://github.com/apache/parquet-format/tree/apache-parquet-format-2.4.0#building)
+for detailed prerequisites and guidance on building parquet-format.
+
+### Building the Parquet-mr
+1. Install Protobuf 3.5.1
+2. Install Thrift 0.9.3
+3. go to the folder target/parquet-mr
+4. Please refer to the documentation at
+   [building](https://github.com/apache/parquet-mr/tree/apache-parquet-1.10.0#building)
+   for detailed prerequisites and guidance on building parquet-mr.
+
+### Building the ORC
+1. Install java 1.7 or higher
+2. Install maven 3 or higher
+3. Install cmake
+4. go to the folder target/orc
+5. Please refer to the documentation at [building](https://github.com/apache/orc/tree/rel/release-1.5.1#building) for detailed prerequisites and guidance on buidling orc.
+
+### Building the Hive
+1. go to the folder target/hive
+2. Please refer to the documentation at [getting-started](https://github.com/apache/hive#getting-started) for detailed prerequisites and guidance on buidling hive.
+
+### Copy the jars to the CDP
+Please copy the following jars obtained in the previous steps to appropriate location in CDP.
+```
+parquet-format-2.4.0.jar
+parquet-common-1.10.0.jar
+parquet-hadoop-1.10.0.jar
+orc-core-1.5.1.jar
+orc-shims-1.5.1.jar
+hive-exec-3.1.0.jar
+```
 #### For any security concerns, please visit https://01.org/security.
