@@ -24,14 +24,12 @@ declare -A es_lucene_version_m=(["7.6.1"]="8.4.0")
 ES_REPO=https://github.com/elastic/elasticsearch.git
 ES_version_base="7.6.1"
 
-
 ES_version=$1
 QATCodec_SRC_DIR=$2
 
 ES_QAT_DIR=$QATCodec_SRC_DIR/es_qat_wrapper/${ES_version_base}/elasticsearch
 TARGET_DIR=$QATCodec_SRC_DIR/es_qat_wrapper/${ES_version_base}/target
 ES_SRC_DIR=$TARGET_DIR/elasticsearch
-
 
 function clone_repo(){
   echo "Clone Branch $1 from Repo $2"

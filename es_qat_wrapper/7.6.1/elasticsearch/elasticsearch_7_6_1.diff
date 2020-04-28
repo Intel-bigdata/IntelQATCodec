@@ -95,7 +95,7 @@ index 00000000000..5aef96c70c9
 +
 +public class QatCompressor implements Compressor {
 +    private static final byte[] HEADER = new byte[]{'Q', 'A', 'T', '\0'};
-+    private static final int LEVEL = 3;
++    private static final int LEVEL = 1;
 +    // limit the number of JNI calls
 +    private static final int BUFFER_SIZE = 4096;
 +    //add log to identify whether using qat
