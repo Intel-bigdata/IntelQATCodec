@@ -1,0 +1,44 @@
+diff --git a/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java b/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
+index 8cdede0..01ca8eb 100644
+--- a/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
++++ b/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
+@@ -30,7 +30,8 @@ public enum CompressionCodecName {
+   LZO("com.hadoop.compression.lzo.LzoCodec", CompressionCodec.LZO, ".lzo"),
+   BROTLI("org.apache.hadoop.io.compress.BrotliCodec", CompressionCodec.BROTLI, ".br"),
+   LZ4("org.apache.hadoop.io.compress.Lz4Codec", CompressionCodec.LZ4, ".lz4"),
+-  ZSTD("org.apache.hadoop.io.compress.ZStandardCodec", CompressionCodec.ZSTD, ".zstd");
++  ZSTD("org.apache.hadoop.io.compress.ZStandardCodec", CompressionCodec.ZSTD, ".zstd"),
++  QAT("org.apache.hadoop.io.compress.QatCodec", CompressionCodec.QAT, ".qat");
+ 
+   public static CompressionCodecName fromConf(String name) {
+      if (name == null) {
+diff --git a/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java b/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
+index da87e5d..a844827 100644
+--- a/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
++++ b/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
+@@ -138,6 +138,12 @@ public class CodecFactory implements CompressionCodecFactory {
+     private final CompressionCodecName codecName;
+ 
+     HeapBytesCompressor(CompressionCodecName codecName) {
++      if (codecName == CompressionCodecName.GZIP) {
++        boolean qatEnable = configuration.getBoolean("io.compression.codec.qat.enable", false);
++        if (qatEnable) {
++          codecName = CompressionCodecName.QAT;
++        }
++      }
+       this.codecName = codecName;
+       this.codec = getCodec(codecName);
+       if (codec != null) {
+@@ -217,6 +223,12 @@ public class CodecFactory implements CompressionCodecFactory {
+    * @return the corresponding hadoop codec. null if UNCOMPRESSED
+    */
+   protected CompressionCodec getCodec(CompressionCodecName codecName) {
++    if (codecName == CompressionCodecName.GZIP) {
++      boolean qatEnable = configuration.getBoolean("io.compression.codec.qat.enable", false);
++      if (qatEnable) {
++        codecName = CompressionCodecName.QAT;
++      }
++    }
+     String codecClassName = codecName.getHadoopCompressionCodecClassName();
+     if (codecClassName == null) {
+       return null;
