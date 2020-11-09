@@ -122,4 +122,18 @@ orc-core-1.5.1.jar
 orc-shims-1.5.1.jar
 hive-exec-3.1.0.jar
 ```
+## How to use QATCodec for Spark SQL Paruquet Datasource
+### 1. Copy the jars to the Spark
+Please copy the following jars obtained in the previous steps to appropriate location in Spark
+```
+parquet-format-2.4.0.jar
+parquet-common-1.10.1.jar
+parquet-hadoop-1.10.1.jar
+```
+### 2. Configuration to enable QATCodec
+Put below configurations to _$SPARK_HOME/conf/spark-defaults.conf_ or via _spark-shell --conf_
+```
+spark.sql.parquet.compression.codec gzip
+spark.hadoop.io.compression.codec.qat.enable true
+```
 #### For any security concerns, please visit https://01.org/security.
