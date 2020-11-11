@@ -122,7 +122,7 @@ orc-core-1.5.1.jar
 orc-shims-1.5.1.jar
 hive-exec-3.1.0.jar
 ```
-## How to use QATCodec for Spark SQL Paruquet Datasource
+## How to use QATCodec for Spark SQL Parquet Datasource
 ### 1. Copy the jars to the Spark
 Please copy the following jars obtained in the previous steps to appropriate location in Spark
 ```
