@@ -17,11 +17,11 @@
 # */
 #!/bin/bash
 
-declare -a supported_CDH_versions=("5.14.2" "6.2.1" "7.0.0")
-declare -A cdh_parquet_format_version_m=( ["5.14.2"]="2.1.0" ["7.0.0"]="2.4.0")
-declare -A cdh_parquet_mr_version_m=( ["5.14.2"]="1.5.0" ["7.0.0"]="1.10.0")
-declare -A cdp_orc_version_m=(["7.0.0"]="1.5.1")
-declare -A cdh_hive_version_m=( ["5.14.2"]="1.1.0" ["7.0.0"]="3.1.0")
+declare -a supported_CDH_versions=("5.14.2" "6.2.1" "7.0.0" "spark3.0.0")
+declare -A cdh_parquet_format_version_m=( ["5.14.2"]="2.1.0" ["7.0.0"]="2.4.0" ["spark3.0.0"]="2.4.0")
+declare -A cdh_parquet_mr_version_m=( ["5.14.2"]="1.5.0" ["7.0.0"]="1.10.0" ["spark3.0.0"]="1.10.1")
+declare -A cdp_orc_version_m=(["7.0.0"]="1.5.1" ["spark3.0.0"]="1.5.10")
+declare -A cdh_hive_version_m=( ["5.14.2"]="1.1.0" ["7.0.0"]="3.1.0"  ["spark3.0.0"]="2.3.7")
 # Repo Address
 PARQUET_MR_REPO=https://github.com/cloudera/parquet-mr
 PARQUET_FORMAT_REPO=https://github.com/cloudera/parquet-format
@@ -69,14 +69,16 @@ function check_CDH_version(){
 }
 
 apply_patch_to_cdp_orc(){
-   pushd $TARGET_DIR
    CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-   if [ "$CDH_major_version" = "7" ]; then
-      ORC_BRANCH="rel/release-${cdp_orc_version_m[$CDH_release_version]}"
+   if [ "$CDH_major_version" != "spark3" ]; then
+       pushd $TARGET_DIR
+       if [ "$CDH_major_version" = "7" ]; then
+          ORC_BRANCH="rel/release-${cdp_orc_version_m[$CDH_release_version]}"
+       fi
+       clone_repo $ORC_BRANCH $UPSTREAM_ORC_REPO
+       popd
+       apply_diff_to_orc
    fi
-   clone_repo $ORC_BRANCH $UPSTREAM_ORC_REPO
-   popd
-   apply_diff_to_orc
 }
 
 apply_diff_to_orc(){
@@ -89,22 +91,24 @@ apply_diff_to_orc(){
 }
 
 apply_patch_to_cdh_hive(){
-  pushd $TARGET_DIR
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-  if [ "$CDH_major_version" = "6" ]; then
-    HIVE_BRANCH="cdh$CDH_release_version"
-  elif [ "$CDH_major_version" = "7" ]; then
-    HIVE_BRANCH="rel/release-${cdh_hive_version_m[$CDH_release_version]}"
-    clone_repo $HIVE_BRANCH $UPSTREAM_HIVE_REPO
-    popd
-    apply_diff_to_hive
-    return
-  else
-    HIVE_BRANCH="cdh$CDH_major_version-${cdh_hive_version_m[$CDH_release_version]}_$CDH_release_version"
+  if [ "$CDH_major_version" != "spark3" ]; then
+      pushd $TARGET_DIR
+      if [ "$CDH_major_version" = "6" ]; then
+        HIVE_BRANCH="cdh$CDH_release_version"
+      elif [ "$CDH_major_version" = "7" ]; then
+        HIVE_BRANCH="rel/release-${cdh_hive_version_m[$CDH_release_version]}"
+        clone_repo $HIVE_BRANCH $UPSTREAM_HIVE_REPO
+        popd
+        apply_diff_to_hive
+        return
+      else
+        HIVE_BRANCH="cdh$CDH_major_version-${cdh_hive_version_m[$CDH_release_version]}_$CDH_release_version"
+      fi
+      clone_repo $HIVE_BRANCH $HIVE_REPO
+      echo yes | cp -rf $HIVE_QAT_DIR/$CDH_release_version/hive $TARGET_DIR/
+      popd
   fi
-  clone_repo $HIVE_BRANCH $HIVE_REPO
-  echo yes | cp -rf $HIVE_QAT_DIR/$CDH_release_version/hive $TARGET_DIR/
-  popd
 }
 
 apply_diff_to_hive(){
@@ -121,7 +125,7 @@ apply_patch_to_cdh_parquet_format(){
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
   if [ "$CDH_major_version" = "6" ]; then
     PARQUET_FORMAT_BRANCH="cdh$CDH_release_version"
-  elif [ "$CDH_major_version" = "7" ]; then
+  elif [ "$CDH_major_version" = "7" ] || [ "$CDH_major_version" = "spark3" ]; then
     PARQUET_FORMAT_BRANCH="apache-parquet-format-${cdh_parquet_format_version_m[$CDH_release_version]}"
     clone_repo $PARQUET_FORMAT_BRANCH $UPSTREAM_PARQUET_FORMAT_REPO
     popd
@@ -137,7 +141,7 @@ apply_patch_to_cdh_parquet_format(){
 
 apply_diff_to_parquet_format(){
    CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-   if [ "$CDH_major_version" = "7" ]; then
+   if [ "$CDH_major_version" = "7" ] || [ "$CDH_major_version" = "spark3" ]; then
       pushd $PARQUET_FORMAT_SRC_DIR
       git apply --reject --whitespace=fix $HIVE_QAT_DIR/$CDH_release_version/parquet-format/*.diff
       popd
@@ -149,7 +153,7 @@ apply_patch_to_cdh_parquet_mr(){
   CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
   if [ "$CDH_major_version" = "6" ]; then
     PARQUET_MR_BRANCH="cdh$CDH_release_version"
-  elif [ "$CDH_major_version" = "7" ]; then
+  elif [ "$CDH_major_version" = "7" ] || [ "$CDH_major_version" = "spark3" ]; then
     PARQUET_MR_BRANCH="apache-parquet-${cdh_parquet_mr_version_m[$CDH_release_version]}"
     clone_repo $PARQUET_MR_BRANCH $UPSTREAM_PARQUET_MR_REPO
     popd
@@ -165,7 +169,7 @@ apply_patch_to_cdh_parquet_mr(){
 
 apply_diff_to_parquet_mr(){
    CDH_major_version=$(echo $CDH_release_version | cut -d '.' -f 1)
-   if [ "$CDH_major_version" = "7" ]; then
+   if [ "$CDH_major_version" = "7" ] || [ "$CDH_major_version" = "spark3" ]; then
       pushd $PARQUET_MR_SRC_DIR
       git apply --reject --whitespace=fix $HIVE_QAT_DIR/$CDH_release_version/parquet-mr/*.diff
       popd
