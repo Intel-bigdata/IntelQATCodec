@@ -158,8 +158,8 @@
     <kryo.version>2.22</kryo.version>
     <libfb303.version>${cdh.thrift.version}</libfb303.version>
     <libthrift.version>${cdh.thrift.version}</libthrift.version>
-    <log4j.version>1.2.16</log4j.version>
-    <log4j-extras.version>1.2.17</log4j-extras.version>
+    <log4j.version>2.16.0</log4j.version>
+    <log4j-extras.version>2.16.0</log4j-extras.version>
     <opencsv.version>2.3</opencsv.version>
     <mockito-all.version>1.9.5</mockito-all.version>
     <mina.version>2.0.0-M5</mina.version>
@@ -168,7 +168,7 @@
     <pig.version>${cdh.pig.version}</pig.version>
     <protobuf.version>${cdh.protobuf.version}</protobuf.version>
     <stax.version>1.0.1</stax.version>
-    <slf4j.version>${cdh.slf4j.version}</slf4j.version>
+    <slf4j.version>2.16.0</slf4j.version>
     <ST4.version>4.0.4</ST4.version>
     <tez.version>0.5.2</tez.version>
     <super-csv.version>2.2.0</super-csv.version>
@@ -601,13 +601,8 @@
         <version>${mockito-all.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-api</artifactId>
-        <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-log4j12</artifactId>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-slf4j-impl</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
@@ -627,13 +622,8 @@
     <!-- dependencies are always listed in sorted order by groupId, artifectId -->
     <!-- global dependencies -->
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
       <version>${slf4j.version}</version>
     </dependency>
     <dependency>
