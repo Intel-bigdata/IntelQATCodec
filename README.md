@@ -12,6 +12,9 @@ This is possible with the hardware-based compression delivered by Intel®
 QuickAssist Technology, which is easy to integrate into existing systems
 and networks using the available Intel drivers and patches.
 
+## Notice
+[Intel QATCodec, version 2.3.0] has been updated to include functional and security updates. Users should update to the latest version.
+
 ## Online Documentation
 
 http://www.intel.com/content/www/us/en/embedded/technology/quickassist/overview.html
