@@ -141,7 +141,7 @@
     <hadoop.version>${cdh.hadoop.version}</hadoop.version>
     <cascading.version>2.5.3</cascading.version>
     <parquet.format.version>${cdh.parquet-format.version}</parquet.format.version>
-    <log4j.version>2.17.0</log4j.version>
+    <log4j.version>2.17.1</log4j.version>
     <previous.version>1.5.0-cdh5.2.0</previous.version>
     <thrift.executable>thrift</thrift.executable>
     <protoc.executable>protoc</protoc.executable>
