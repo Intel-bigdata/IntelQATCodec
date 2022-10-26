@@ -39,7 +39,7 @@
     <scala.binary.version>2.11</scala.binary.version>
     <spark.version>2.4.8.7.2.12.0-291</spark.version>
     <spark-scope>provided</spark-scope>
-    <hadoop-common.version>3.2.3</hadoop-common.version>
+    <hadoop-common.version>3.2.4</hadoop-common.version>
     <!--<hadoop-common.version>2.6.0-cdh5.10.1</hadoop-common.version>-->
     <scalatest.version>2.2.6</scalatest.version>
     <scalacheck.version>1.12.5</scalacheck.version> <!-- 1.13.0 appears incompatible with scalatest 2.2.6 -->
