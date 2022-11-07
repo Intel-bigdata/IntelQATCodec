@@ -1,5 +1,5 @@
 diff --git a/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java b/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
-index 8cdede09..01ca8ebd 100644
+index 8cdede0..01ca8eb 100644
 --- a/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
 +++ b/parquet-common/src/main/java/org/apache/parquet/hadoop/metadata/CompressionCodecName.java
 @@ -30,7 +30,8 @@ public enum CompressionCodecName {
@@ -12,31 +12,33 @@ index 8cdede09..01ca8ebd 100644
  
    public static CompressionCodecName fromConf(String name) {
       if (name == null) {
-diff --git a/parquet-hadoop/pom.xml b/parquet-hadoop/pom.xml
-index 0544201e..6fd4646f 100644
---- a/parquet-hadoop/pom.xml
-+++ b/parquet-hadoop/pom.xml
-@@ -110,6 +110,11 @@
-       <version>${slf4j.version}</version>
-       <scope>test</scope>
-     </dependency>
-+    <dependency>
-+      <groupId>org.apache.hadoop</groupId>
-+      <artifactId>hadoop_qat_wrapper</artifactId>
-+      <version>${QAT.compression.codec.version}</version>
-+    </dependency>
-   </dependencies>
+diff --git a/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java b/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
+index da87e5d..a844827 100644
+--- a/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
++++ b/parquet-hadoop/src/main/java/org/apache/parquet/hadoop/CodecFactory.java
+@@ -138,6 +138,12 @@ public class CodecFactory implements CompressionCodecFactory {
+     private final CompressionCodecName codecName;
  
-   <build>
-diff --git a/pom.xml b/pom.xml
-index 49752ce4..17175c2f 100644
---- a/pom.xml
-+++ b/pom.xml
-@@ -105,6 +105,7 @@
-     <jackson2.version>2.3.1</jackson2.version>
-     <jcommander.version>1.35</jcommander.version>
-     <commons-codec.version>1.10</commons-codec.version>
-+    <QAT.compression.codec.version>2.3.0</QAT.compression.codec.version>
-   </properties>
- 
-   <modules>
+     HeapBytesCompressor(CompressionCodecName codecName) {
++      if (codecName == CompressionCodecName.GZIP) {
++        boolean qatEnable = configuration.getBoolean("io.compression.codec.qat.enable", false);
++        if (qatEnable) {
++          codecName = CompressionCodecName.QAT;
++        }
++      }
+       this.codecName = codecName;
+       this.codec = getCodec(codecName);
+       if (codec != null) {
+@@ -217,6 +223,12 @@ public class CodecFactory implements CompressionCodecFactory {
+    * @return the corresponding hadoop codec. null if UNCOMPRESSED
+    */
+   protected CompressionCodec getCodec(CompressionCodecName codecName) {
++    if (codecName == CompressionCodecName.GZIP) {
++      boolean qatEnable = configuration.getBoolean("io.compression.codec.qat.enable", false);
++      if (qatEnable) {
++        codecName = CompressionCodecName.QAT;
++      }
++    }
+     String codecClassName = codecName.getHadoopCompressionCodecClassName();
+     if (codecClassName == null) {
+       return null;
