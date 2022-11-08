@@ -38,6 +38,7 @@
     <!-- platform encoding override -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <hadoop-common.version>3.2.4</hadoop-common.version>
   </properties>
 
 
@@ -46,7 +47,7 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <scope>compile</scope>
-      <version>3.2.3</version>
+      <version>${hadoop-common.version}</version>
       <exclusions>
          <exclusion>
             <groupId>log4j</groupId>
@@ -59,7 +60,7 @@
       <artifactId>hadoop-common</artifactId>
       <scope>test</scope>
       <type>test-jar</type>
-      <version>3.2.3</version>
+      <version>3.2.4</version>
       <exclusions>
         <exclusion>
            <groupId>log4j</groupId>
