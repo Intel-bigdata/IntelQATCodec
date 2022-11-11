@@ -73,12 +73,14 @@
       <artifactId>jackson-core-asl</artifactId>
       <version>${jackson.version}</version>
     </dependency>
+    <!-- Disable due to security issue, please enable it when compile
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>24.1.1</version>
       <scope>test</scope>
     </dependency>
+    -->
     <dependency>
       <groupId>org.xerial.snappy</groupId>
       <artifactId>snappy-java</artifactId>
