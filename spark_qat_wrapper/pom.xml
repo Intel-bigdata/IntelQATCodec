@@ -160,6 +160,7 @@
       <artifactId>scalap</artifactId>
       <version>${scala.version}</version>
     </dependency>
+    <!-- Disable due to security issue, please enable it when compile
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-core_${scala.binary.version}</artifactId>
@@ -176,6 +177,7 @@
         </exclusion>
       </exclusions>
     </dependency>
+    -->
     <dependency>
       <groupId>org.apache.spark</groupId>
       <artifactId>spark-mllib_${scala.binary.version}</artifactId>
