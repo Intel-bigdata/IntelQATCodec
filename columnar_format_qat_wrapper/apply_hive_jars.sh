@@ -44,7 +44,7 @@ PARQUET_MR_SRC_DIR=${TARGET_DIR}/parquet-mr
 PARQUET_FORMAT_SRC_DIR=${TARGET_DIR}/parquet-format
 
 function clone_repo(){
-  echo "Git Clone Branch $1 from Repo $2"
+  echo "Test Git1 Clone Branch $1 from Repo $2"
   git clone -b $1 --single-branch $2
 }
 
